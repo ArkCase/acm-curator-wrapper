@@ -15,6 +15,7 @@ public class WrapperCfg
     private String name = null;
     private long timeout = 0;
     private Map<String, Object> params = WrapperCfg.NO_PARAMS;
+    private ExecCfg exec = new ExecCfg();
 
     public OperationMode getMode()
     {
@@ -62,5 +63,19 @@ public class WrapperCfg
     public void setParams(Map<String, Object> params)
     {
         this.params = Tools.ifNull(params, LinkedHashMap::new);
+    }
+
+    public ExecCfg getExec()
+    {
+        if (this.exec == null)
+        {
+            this.exec = new ExecCfg();
+        }
+        return this.exec;
+    }
+
+    public void setExec(ExecCfg exec)
+    {
+        this.exec = Tools.ifNull(this.exec, ExecCfg::new);
     }
 }

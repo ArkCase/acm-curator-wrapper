@@ -48,7 +48,6 @@ public class Cfg
     }
 
     private SessionCfg session = new SessionCfg();
-    private ExecCfg exec = new ExecCfg();
     private WrapperCfg wrapper = new WrapperCfg();
 
     public SessionCfg getSession()
@@ -64,20 +63,6 @@ public class Cfg
     public void setSession(SessionCfg session)
     {
         this.session = Tools.ifNull(this.session, SessionCfg::new);
-    }
-
-    public ExecCfg getExec()
-    {
-        if (this.exec == null)
-        {
-            this.exec = new ExecCfg();
-        }
-        return this.exec;
-    }
-
-    public void setExec(ExecCfg exec)
-    {
-        this.exec = Tools.ifNull(this.exec, ExecCfg::new);
     }
 
     public WrapperCfg getWrapper()

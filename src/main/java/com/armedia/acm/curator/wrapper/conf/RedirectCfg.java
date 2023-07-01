@@ -1,12 +1,8 @@
 package com.armedia.acm.curator.wrapper.conf;
 
-import java.io.File;
-import java.lang.ProcessBuilder.Redirect;
-import java.util.function.Consumer;
-
 public class RedirectCfg
 {
-    private static final String NULL = "null";
+    public static final String NULL = "null";
 
     String stdin = null;
     String stdout = null;
@@ -17,9 +13,19 @@ public class RedirectCfg
         return this.stdin;
     }
 
+    public void setStdin(String stdin)
+    {
+        this.stdin = stdin;
+    }
+
     public String getStdout()
     {
         return this.stdout;
+    }
+
+    public void setStdout(String stdout)
+    {
+        this.stdout = stdout;
     }
 
     public String getStderr()
@@ -27,29 +33,8 @@ public class RedirectCfg
         return this.stderr;
     }
 
-    private void redirect(String path, Consumer<Redirect> tgt)
+    public void setStderr(String stderr)
     {
-        Redirect redirect = Redirect.INHERIT;
-        if (RedirectCfg.NULL.equalsIgnoreCase(path))
-        {
-            redirect = Redirect.DISCARD;
-        }
-        else if (path != null)
-        {
-            redirect = Redirect.from(new File(path));
-        }
-        tgt.accept(redirect);
-    }
-
-    public void apply(ProcessBuilder pb)
-    {
-        if (pb == null)
-        {
-            return;
-        }
-
-        redirect(this.stdin, pb::redirectInput);
-        redirect(this.stdout, pb::redirectOutput);
-        redirect(this.stderr, pb::redirectError);
+        this.stderr = stderr;
     }
 }
