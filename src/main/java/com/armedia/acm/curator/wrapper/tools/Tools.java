@@ -10,7 +10,8 @@ public class Tools
         return ((str == null) || (str.length() == 0));
     }
 
-    public static <T> T coalesce(@SuppressWarnings("unchecked") T... values)
+    @SafeVarargs
+    public static <T> T coalesce(T... values)
     {
         for (T t : values)
         {
@@ -33,5 +34,26 @@ public class Tools
             return s.get();
         }
         return null;
+    }
+
+    public static Throwable closeQuietly(AutoCloseable c)
+    {
+        if (c != null)
+        {
+            try
+            {
+                c.close();
+            }
+            catch (Throwable t)
+            {
+                return t;
+            }
+        }
+        return null;
+    }
+
+    public static void noop()
+    {
+        // DO nothing
     }
 }

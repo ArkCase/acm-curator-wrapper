@@ -1,5 +1,7 @@
 package com.armedia.acm.curator.wrapper.conf;
 
+import com.armedia.acm.curator.wrapper.tools.Tools;
+
 public class SessionCfg
 {
     private String connect = null;
@@ -13,14 +15,37 @@ public class SessionCfg
         return this.connect;
     }
 
+    public void setConnect(String connect)
+    {
+        this.connect = connect;
+    }
+
     public int getSessionTimeout()
     {
+        if (this.sessionTimeout < 0)
+        {
+            this.sessionTimeout = 0;
+        }
         return this.sessionTimeout;
+    }
+
+    public void setSessionTimeout(int sessionTimeout)
+    {
+        this.sessionTimeout = Math.max(0, sessionTimeout);
     }
 
     public int getConnectionTimeout()
     {
+        if (this.connectionTimeout < 0)
+        {
+            this.connectionTimeout = 0;
+        }
         return this.connectionTimeout;
+    }
+
+    public void setConnectionTimeout(int connectionTimeout)
+    {
+        this.connectionTimeout = Math.max(0, connectionTimeout);
     }
 
     public String getBasePath()
@@ -28,8 +53,22 @@ public class SessionCfg
         return this.basePath;
     }
 
+    public void setBasePath(String basePath)
+    {
+        this.basePath = basePath;
+    }
+
     public RetryCfg getRetry()
     {
+        if (this.retry == null)
+        {
+            this.retry = new RetryCfg();
+        }
         return this.retry;
+    }
+
+    public void setRetry(RetryCfg retry)
+    {
+        this.retry = Tools.ifNull(retry, RetryCfg::new);
     }
 }

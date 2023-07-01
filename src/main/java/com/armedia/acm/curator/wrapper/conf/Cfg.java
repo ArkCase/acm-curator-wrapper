@@ -12,6 +12,8 @@ import java.nio.charset.StandardCharsets;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.representer.Representer;
 
+import com.armedia.acm.curator.wrapper.tools.Tools;
+
 public class Cfg
 {
     public static Cfg load(ReadableByteChannel c)
@@ -45,42 +47,50 @@ public class Cfg
         return new Yaml(representer).loadAs(r, Cfg.class);
     }
 
-    private static final OperationMode DEFAULT_MODE = OperationMode.leader;
-
     private SessionCfg session = new SessionCfg();
-    private CommandCfg command = new CommandCfg();
-    private OperationMode mode = OperationMode.direct;
-    private LeaderCfg leader = new LeaderCfg();
-    private MutexCfg mutex = new MutexCfg();
-    private BarrierCfg barrier = new BarrierCfg();
+    private ExecCfg exec = new ExecCfg();
+    private WrapperCfg wrapper = new WrapperCfg();
 
     public SessionCfg getSession()
     {
+        if (this.session == null)
+        {
+            this.session = new SessionCfg();
+        }
         return this.session;
+
     }
 
-    public CommandCfg getCommand()
+    public void setSession(SessionCfg session)
     {
-        return this.command;
+        this.session = Tools.ifNull(this.session, SessionCfg::new);
     }
 
-    public OperationMode getMode()
+    public ExecCfg getExec()
     {
-        return (this.mode != null ? this.mode : Cfg.DEFAULT_MODE);
+        if (this.exec == null)
+        {
+            this.exec = new ExecCfg();
+        }
+        return this.exec;
     }
 
-    public LeaderCfg getLeader()
+    public void setExec(ExecCfg exec)
     {
-        return this.leader;
+        this.exec = Tools.ifNull(this.exec, ExecCfg::new);
     }
 
-    public MutexCfg getMutex()
+    public WrapperCfg getWrapper()
     {
-        return this.mutex;
+        if (this.wrapper == null)
+        {
+            this.wrapper = new WrapperCfg();
+        }
+        return this.wrapper;
     }
 
-    public BarrierCfg getBarrier()
+    public void setWrapper(WrapperCfg wrapper)
     {
-        return this.barrier;
+        this.wrapper = Tools.ifNull(this.wrapper, WrapperCfg::new);
     }
 }

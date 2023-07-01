@@ -14,11 +14,11 @@ import java.util.StringTokenizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CommandCfg
+public class ExecCfg
 {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private String workdir = null;
-    private Object exec = null;
+    private Object command = null;
     private Map<String, String> env = Collections.emptyMap();
     private boolean cleanEnv = false;
     private RedirectCfg redirect = new RedirectCfg();
@@ -28,9 +28,9 @@ public class CommandCfg
         return this.workdir;
     }
 
-    public Object getExec()
+    public Object getCommand()
     {
-        return this.exec;
+        return this.command;
     }
 
     public Map<String, String> getEnv()
@@ -50,7 +50,7 @@ public class CommandCfg
 
     public int run() throws Exception
     {
-        Objects.requireNonNull(this.exec);
+        Objects.requireNonNull(this.command);
         File workdir = new File(".");
         if (this.workdir != null)
         {
@@ -73,16 +73,16 @@ public class CommandCfg
         }
 
         final List<String> cmd;
-        Objects.requireNonNull(this.exec, "Must provide a non-null exec value");
-        if (Collection.class.isInstance(this.exec))
+        Objects.requireNonNull(this.command, "Must provide a non-null exec value");
+        if (Collection.class.isInstance(this.command))
         {
-            Collection<?> c = Collection.class.cast(this.exec);
+            Collection<?> c = Collection.class.cast(this.command);
             cmd = new ArrayList<>(c.size());
             c.forEach((v) -> cmd.add(String.valueOf(v)));
         }
-        else if (this.exec.getClass().isArray())
+        else if (this.command.getClass().isArray())
         {
-            Object[] arr = (Object[]) this.exec;
+            Object[] arr = (Object[]) this.command;
             cmd = new ArrayList<>(arr.length);
             for (Object o : arr)
             {
@@ -91,7 +91,7 @@ public class CommandCfg
         }
         else
         {
-            StringTokenizer tok = new StringTokenizer(this.exec.toString());
+            StringTokenizer tok = new StringTokenizer(this.command.toString());
             cmd = new ArrayList<>(tok.countTokens());
             while (tok.hasMoreTokens())
             {

@@ -1,4 +1,4 @@
-zookeeper:
+session:
   # The zookeeper connection string (default: none)
   connect: "zookeper connect string"
 
@@ -6,7 +6,7 @@ zookeeper:
   sessionTimeout: session-timeout-in-ms
 
   # The base path for whatever will be requested below (default: none)
-  basePath: "the-zookeeper-base-path-for-wrapper-construction"
+  basePath: "the-zookeeper-base-path-for-the-wrapper's-objects"
 
   # Connection retry parameters
   retry:
@@ -16,13 +16,13 @@ zookeeper:
     delay: milliseconds between retries
 
 # Information about the command/executable being wrapped
-command:
+exec:
   # The working directory (default: ${user.dir})
   workdir: "/the/working/directory"
 
   # The actual command to run (required, no default)
-  execute: [ command, args, one, by, one ]
-  # execute: "in-string-format-to-be-run-using-a-shell"
+  command: [ command, args, one, by, one ]
+  # command: "in-string-format-to-be-run-using-a-shell"
 
   # The environment to set for the command. Variables will be expanded to resolve
   # system properties before being set for execution (default: none)
@@ -41,20 +41,8 @@ command:
     stdout: "/output-file"
     stderr: "/error-file"
 
-# The mode of operation. If none is given, the command is executed directly
-mode: ("direct"|"leader"|"mutex"|"barrier")
-
-leader:
-  name: "the name of the leader task to request"
-  requeue: true|false
-
-mutex:
-  name: "the mutex name"
-  timeout: acquisition-timeout-in-millis
-
-# Possibly add this "soon", but it won't work like in Java b/c one has to manually set
-# or remove the barrier. The implementation causes callers to just sit and wait until
-# the barrier node is created.
-# barrier:
-#   name: "the barrier name"
-#   timeout: wait-timeout-in-millis
+wrapper:
+  # The mode of operation. If none is given, the command is executed directly
+  mode: ("direct"|"leader"|"mutex"|"barrier")
+  name: "the name of the leader task, mutex, or barrier to use"
+  timeout: timeout-in-millis

@@ -30,12 +30,13 @@ package com.armedia.acm.curator.wrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.armedia.acm.curator.wrapper.conf.CommandCfg;
 import com.armedia.acm.curator.wrapper.conf.Cfg;
+import com.armedia.acm.curator.wrapper.conf.ExecCfg;
 import com.armedia.acm.curator.wrapper.conf.OperationMode;
-import com.armedia.acm.curator.wrapper.module.Session;
+import com.armedia.acm.curator.wrapper.conf.WrapperCfg;
 import com.armedia.acm.curator.wrapper.module.Leader;
 import com.armedia.acm.curator.wrapper.module.Mutex;
+import com.armedia.acm.curator.wrapper.module.Session;
 
 public class Main
 {
@@ -51,17 +52,17 @@ public class Main
         this.cfg = null;
     }
 
-    private AutoCloseable createWrapper(Cfg cfg, Session session) throws Exception
+    private AutoCloseable createWrapper(WrapperCfg cfg, Session session) throws Exception
     {
         switch (cfg.getMode())
         {
         case leader:
             this.log.info("Creating a leadership selector");
-            return new Leader(cfg.getLeader(), session).acquire();
+            return new Leader(session, cfg.getName()).awaitLeadership();
 
         case mutex:
             this.log.info("Creating a mutex lock");
-            return new Mutex(cfg.getMutex(), session).acquire();
+            return new Mutex(session, cfg.getName()).acquire();
 
         default:
             this.log.info("No-op wrapper created");
@@ -76,8 +77,9 @@ public class Main
 
     public int run() throws Exception
     {
-        CommandCfg cmd = this.cfg.getCommand();
-        if (this.cfg.getMode() == OperationMode.direct)
+        ExecCfg cmd = this.cfg.getExec();
+        WrapperCfg wrapperCfg = this.cfg.getWrapper();
+        if (wrapperCfg.getMode() == OperationMode.direct)
         {
             // We're not working any of our magic... just execute the wrapped command
             return cmd.run();
@@ -94,7 +96,7 @@ public class Main
 
             // This is the new, "clusterable" code path
             this.log.info("Running in clustered mode");
-            try (AutoCloseable c = createWrapper(this.cfg, session))
+            try (AutoCloseable c = createWrapper(wrapperCfg, session))
             {
                 return cmd.run();
             }

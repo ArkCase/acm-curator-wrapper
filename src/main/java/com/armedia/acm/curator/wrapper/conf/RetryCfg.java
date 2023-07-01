@@ -1,35 +1,40 @@
 package com.armedia.acm.curator.wrapper.conf;
 
-import org.apache.curator.RetryPolicy;
-import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.curator.retry.RetryForever;
+import com.armedia.acm.curator.wrapper.tools.Tools;
 
 public class RetryCfg
 {
-    private static final int MIN_DELAY = 100;
-    private static final int DEF_DELAY = 1000;
-    private static final int MAX_DELAY = 60000;
-    private static final int DEF_COUNT = 0;
-    private int count = RetryCfg.DEF_COUNT;
-    private int delay = RetryCfg.DEF_DELAY;
+    private static final Integer DEF_DELAY = 1000;
+    private static final Integer DEF_COUNT = 0;
+
+    private Integer count = null;
+    private Integer delay = null;
 
     public int getCount()
     {
+        if (this.count == null)
+        {
+            this.count = RetryCfg.DEF_COUNT;
+        }
         return this.count;
     }
 
-    public long getDelay()
+    public void setCount(Integer count)
     {
+        this.count = Tools.coalesce(count, RetryCfg.DEF_COUNT);
+    }
+
+    public int getDelay()
+    {
+        if (this.delay == null)
+        {
+            this.delay = RetryCfg.DEF_DELAY;
+        }
         return this.delay;
     }
 
-    public RetryPolicy asRetryPolicy()
+    public void setDelay(Integer delay)
     {
-        final int delay = Math.max(RetryCfg.MIN_DELAY, Math.min(RetryCfg.MAX_DELAY, this.delay));
-        if (this.count <= 0)
-        {
-            return new RetryForever(delay);
-        }
-        return new ExponentialBackoffRetry(delay, this.count);
+        this.delay = Tools.coalesce(delay, RetryCfg.DEF_DELAY);
     }
 }

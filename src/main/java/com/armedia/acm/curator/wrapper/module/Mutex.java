@@ -7,21 +7,20 @@ import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.armedia.acm.curator.wrapper.conf.MutexCfg;
 import com.armedia.acm.curator.wrapper.tools.Tools;
 
-public class Mutex
+public class Mutex extends Recipe
 {
     private final Logger log = LoggerFactory.getLogger(getClass());
+
     private final String mutexName;
     private final String mutexPath;
-    private final Session connection;
 
-    public Mutex(MutexCfg cfg, Session connection)
+    public Mutex(Session session, String name)
     {
-        this.connection = connection;
-        String baseMutexPath = String.format("%s/mutex", connection.getBasePath());
-        this.mutexName = cfg.getName();
+        super(session);
+        String baseMutexPath = String.format("%s/mutex", session.getBasePath());
+        this.mutexName = name;
         this.mutexPath = (Tools.isEmpty(this.mutexName) //
                 ? baseMutexPath //
                 : String.format("%s/%s", baseMutexPath, this.mutexName) //
@@ -40,7 +39,7 @@ public class Mutex
 
     public Session getConnection()
     {
-        return this.connection;
+        return this.session;
     }
 
     public AutoCloseable acquire() throws Exception
@@ -60,9 +59,9 @@ public class Mutex
 
     public AutoCloseable acquire(String mutexName, Duration maxWait) throws Exception
     {
-        this.connection.assertEnabled();
+        this.session.assertEnabled();
 
-        final InterProcessMutex lock = new InterProcessMutex(this.connection.getClient(), this.mutexPath);
+        final InterProcessMutex lock = new InterProcessMutex(this.session.getClient(), this.mutexPath);
         if ((maxWait != null) && !maxWait.isNegative() && !maxWait.isZero())
         {
             if (!lock.acquire(maxWait.toMillis(), TimeUnit.MILLISECONDS))

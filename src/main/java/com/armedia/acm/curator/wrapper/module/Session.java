@@ -9,18 +9,22 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.curator.framework.recipes.leader.LeaderSelector;
+import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.retry.RetryForever;
 import org.apache.zookeeper.common.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.armedia.acm.curator.wrapper.conf.Cfg;
-import com.armedia.acm.curator.wrapper.conf.SessionCfg;
 import com.armedia.acm.curator.wrapper.conf.RetryCfg;
+import com.armedia.acm.curator.wrapper.conf.SessionCfg;
 import com.armedia.acm.curator.wrapper.tools.Tools;
 
 public class Session implements AutoCloseable
 {
+    private static final int MIN_DELAY = 100;
+    private static final int MAX_DELAY = 60000;
+
     private static final int MIN_SESSION_TIMEOUT = 1;
     private static final int MIN_CONNECTION_TIMEOUT = 100;
 
@@ -49,7 +53,17 @@ public class Session implements AutoCloseable
         int connectionTimeout = Math.max(Session.MIN_CONNECTION_TIMEOUT, cfg.getConnectionTimeout());
 
         RetryCfg retry = Tools.ifNull(cfg.getRetry(), RetryCfg::new);
-        RetryPolicy retryPolicy = retry.asRetryPolicy();
+
+        RetryPolicy retryPolicy = null;
+        final int delay = Math.max(Session.MIN_DELAY, Math.min(Session.MAX_DELAY, retry.getDelay()));
+        if (retry.getCount() <= 0)
+        {
+            retryPolicy = new RetryForever(delay);
+        }
+        else
+        {
+            retryPolicy = new ExponentialBackoffRetry(delay, retry.getCount());
+        }
 
         this.log.debug("Clustering retry policy is {}, with a delay of {}", retryPolicy.getClass().getSimpleName(),
                 retry.getDelay());
