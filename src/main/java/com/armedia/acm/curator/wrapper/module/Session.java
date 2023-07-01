@@ -14,12 +14,12 @@ import org.apache.zookeeper.common.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.armedia.acm.curator.wrapper.conf.Configuration;
-import com.armedia.acm.curator.wrapper.conf.CuratorSessionCfg;
+import com.armedia.acm.curator.wrapper.conf.Cfg;
+import com.armedia.acm.curator.wrapper.conf.SessionCfg;
 import com.armedia.acm.curator.wrapper.conf.RetryCfg;
 import com.armedia.acm.curator.wrapper.tools.Tools;
 
-public class CuratorSession implements AutoCloseable
+public class Session implements AutoCloseable
 {
     private static final int MIN_SESSION_TIMEOUT = 1;
     private static final int MIN_CONNECTION_TIMEOUT = 100;
@@ -33,10 +33,10 @@ public class CuratorSession implements AutoCloseable
     private final String basePath;
     private final Map<Integer, LeaderSelector> selectors = Collections.synchronizedMap(new TreeMap<>());
 
-    public CuratorSession(Configuration configuration)
+    public Session(Cfg configuration)
             throws InterruptedException
     {
-        CuratorSessionCfg cfg = Tools.ifNull(configuration.getSession(), CuratorSessionCfg::new);
+        SessionCfg cfg = Tools.ifNull(configuration.getSession(), SessionCfg::new);
 
         if (Tools.isEmpty(cfg.getConnect()))
         {
@@ -45,8 +45,8 @@ public class CuratorSession implements AutoCloseable
             return;
         }
 
-        int sessionTimeout = Math.max(CuratorSession.MIN_SESSION_TIMEOUT, cfg.getSessionTimeout());
-        int connectionTimeout = Math.max(CuratorSession.MIN_CONNECTION_TIMEOUT, cfg.getConnectionTimeout());
+        int sessionTimeout = Math.max(Session.MIN_SESSION_TIMEOUT, cfg.getSessionTimeout());
+        int connectionTimeout = Math.max(Session.MIN_CONNECTION_TIMEOUT, cfg.getConnectionTimeout());
 
         RetryCfg retry = Tools.ifNull(cfg.getRetry(), RetryCfg::new);
         RetryPolicy retryPolicy = retry.asRetryPolicy();
@@ -59,7 +59,7 @@ public class CuratorSession implements AutoCloseable
         }
 
         this.basePath = (StringUtils.isEmpty(cfg.getBasePath()) //
-                ? CuratorSession.ROOT_PATH //
+                ? Session.ROOT_PATH //
                 : cfg.getBasePath() //
         );
 

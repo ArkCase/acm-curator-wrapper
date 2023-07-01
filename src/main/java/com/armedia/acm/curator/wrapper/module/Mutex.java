@@ -15,9 +15,9 @@ public class Mutex
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final String mutexName;
     private final String mutexPath;
-    private final CuratorSession connection;
+    private final Session connection;
 
-    public Mutex(MutexCfg cfg, CuratorSession connection)
+    public Mutex(MutexCfg cfg, Session connection)
     {
         this.connection = connection;
         String baseMutexPath = String.format("%s/mutex", connection.getBasePath());
@@ -38,7 +38,7 @@ public class Mutex
         return this.mutexPath;
     }
 
-    public CuratorSession getConnection()
+    public Session getConnection()
     {
         return this.connection;
     }

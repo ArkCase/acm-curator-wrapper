@@ -12,49 +12,49 @@ import java.nio.charset.StandardCharsets;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.representer.Representer;
 
-public class Configuration
+public class Cfg
 {
-    public static Configuration load(ReadableByteChannel c)
+    public static Cfg load(ReadableByteChannel c)
     {
-        return Configuration.load(c, null);
+        return Cfg.load(c, null);
     }
 
-    public static Configuration load(ReadableByteChannel c, Charset charset)
+    public static Cfg load(ReadableByteChannel c, Charset charset)
     {
-        return Configuration.load(Channels.newInputStream(c), charset);
+        return Cfg.load(Channels.newInputStream(c), charset);
     }
 
-    public static Configuration load(InputStream in) throws IOException
+    public static Cfg load(InputStream in) throws IOException
     {
-        return Configuration.load(in, null);
+        return Cfg.load(in, null);
     }
 
-    public static Configuration load(InputStream in, Charset charset)
+    public static Cfg load(InputStream in, Charset charset)
     {
         if (charset == null)
         {
             charset = StandardCharsets.UTF_8;
         }
-        return Configuration.load(new InputStreamReader(in, charset));
+        return Cfg.load(new InputStreamReader(in, charset));
     }
 
-    public static Configuration load(Reader r)
+    public static Cfg load(Reader r)
     {
         Representer representer = new Representer();
         representer.getPropertyUtils().setSkipMissingProperties(true);
-        return new Yaml(representer).loadAs(r, Configuration.class);
+        return new Yaml(representer).loadAs(r, Cfg.class);
     }
 
     private static final OperationMode DEFAULT_MODE = OperationMode.leader;
 
-    private CuratorSessionCfg session = new CuratorSessionCfg();
+    private SessionCfg session = new SessionCfg();
     private CommandCfg command = new CommandCfg();
     private OperationMode mode = OperationMode.direct;
     private LeaderCfg leader = new LeaderCfg();
     private MutexCfg mutex = new MutexCfg();
     private BarrierCfg barrier = new BarrierCfg();
 
-    public CuratorSessionCfg getSession()
+    public SessionCfg getSession()
     {
         return this.session;
     }
@@ -66,7 +66,7 @@ public class Configuration
 
     public OperationMode getMode()
     {
-        return (this.mode != null ? this.mode : Configuration.DEFAULT_MODE);
+        return (this.mode != null ? this.mode : Cfg.DEFAULT_MODE);
     }
 
     public LeaderCfg getLeader()

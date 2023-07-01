@@ -1,6 +1,6 @@
 package com.armedia.acm.curator.wrapper.conf;
 
-public class CuratorSessionCfg
+public class SessionCfg
 {
     private String connect = null;
     private int sessionTimeout = 0;

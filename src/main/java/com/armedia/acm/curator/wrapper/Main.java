@@ -31,9 +31,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.armedia.acm.curator.wrapper.conf.CommandCfg;
-import com.armedia.acm.curator.wrapper.conf.Configuration;
+import com.armedia.acm.curator.wrapper.conf.Cfg;
 import com.armedia.acm.curator.wrapper.conf.OperationMode;
-import com.armedia.acm.curator.wrapper.module.CuratorSession;
+import com.armedia.acm.curator.wrapper.module.Session;
 import com.armedia.acm.curator.wrapper.module.Leader;
 import com.armedia.acm.curator.wrapper.module.Mutex;
 
@@ -42,7 +42,7 @@ public class Main
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final Configuration cfg;
+    private final Cfg cfg;
 
     private Main(String... args)
     {
@@ -51,7 +51,7 @@ public class Main
         this.cfg = null;
     }
 
-    private AutoCloseable createWrapper(Configuration cfg, CuratorSession session) throws Exception
+    private AutoCloseable createWrapper(Cfg cfg, Session session) throws Exception
     {
         switch (cfg.getMode())
         {
@@ -83,7 +83,7 @@ public class Main
             return cmd.run();
         }
 
-        try (CuratorSession session = new CuratorSession(this.cfg))
+        try (Session session = new Session(this.cfg))
         {
             if (!session.isEnabled())
             {

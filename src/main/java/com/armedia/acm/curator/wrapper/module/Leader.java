@@ -19,9 +19,9 @@ public class Leader
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final String leaderName;
     private final String leaderPath;
-    private final CuratorSession connection;
+    private final Session connection;
 
-    public Leader(LeaderCfg cfg, CuratorSession connection)
+    public Leader(LeaderCfg cfg, Session connection)
     {
         this.connection = connection;
         String baseLeaderPath = String.format("%s/leader", connection.getBasePath());
@@ -42,7 +42,7 @@ public class Leader
         return this.leaderPath;
     }
 
-    public CuratorSession getConnection()
+    public Session getConnection()
     {
         return this.connection;
     }
