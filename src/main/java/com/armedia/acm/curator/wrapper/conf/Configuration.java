@@ -10,17 +10,10 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.representer.Representer;
 
 public class Configuration
 {
-
-    static boolean isEmpty(String str)
-    {
-        return ((str == null) || (str.length() < 0));
-    }
-
     public static Configuration load(ReadableByteChannel c)
     {
         return Configuration.load(c, null);
@@ -49,26 +42,21 @@ public class Configuration
     {
         Representer representer = new Representer();
         representer.getPropertyUtils().setSkipMissingProperties(true);
-        return new Yaml(new Constructor(Configuration.class), representer).load(r);
+        return new Yaml(representer).loadAs(r, Configuration.class);
     }
 
     private static final OperationMode DEFAULT_MODE = OperationMode.leader;
 
-    private ZookeeperCfg zookeeper = new ZookeeperCfg();
+    private CuratorSessionCfg session = new CuratorSessionCfg();
     private CommandCfg command = new CommandCfg();
     private OperationMode mode = OperationMode.direct;
     private LeaderCfg leader = new LeaderCfg();
     private MutexCfg mutex = new MutexCfg();
     private BarrierCfg barrier = new BarrierCfg();
 
-    public ZookeeperCfg getZookeeper()
+    public CuratorSessionCfg getSession()
     {
-        return this.zookeeper;
-    }
-
-    public void setZookeeper(ZookeeperCfg zookeeper)
-    {
-        this.zookeeper = zookeeper;
+        return this.session;
     }
 
     public CommandCfg getCommand()

@@ -14,9 +14,4 @@ public class LeaderCfg
     {
         return this.requeue;
     }
-
-    public AutoCloseable acquire(CuratorSession session) throws InterruptedException
-    {
-        return new Leader(session).acquire(this.name);
-    }
 }

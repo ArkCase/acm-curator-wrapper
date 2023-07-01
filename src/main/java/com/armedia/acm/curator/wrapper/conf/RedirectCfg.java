@@ -1,10 +1,13 @@
 package com.armedia.acm.curator.wrapper.conf;
 
 import java.io.File;
+import java.lang.ProcessBuilder.Redirect;
+import java.util.function.Consumer;
 
 public class RedirectCfg
 {
     private static final String NULL = "null";
+
     String stdin = null;
     String stdout = null;
     String stderr = null;
@@ -24,42 +27,29 @@ public class RedirectCfg
         return this.stderr;
     }
 
+    private void redirect(String path, Consumer<Redirect> tgt)
+    {
+        Redirect redirect = Redirect.INHERIT;
+        if (RedirectCfg.NULL.equalsIgnoreCase(path))
+        {
+            redirect = Redirect.DISCARD;
+        }
+        else if (path != null)
+        {
+            redirect = Redirect.from(new File(path));
+        }
+        tgt.accept(redirect);
+    }
+
     public void apply(ProcessBuilder pb)
     {
-        // Always do this
-        pb.inheritIO();
-        if (this.stdin != null)
+        if (pb == null)
         {
-            if (RedirectCfg.NULL.equalsIgnoreCase(this.stdin))
-            {
-                pb.redirectInput(java.lang.ProcessBuilder.Redirect.DISCARD);
-            }
-            else
-            {
-                pb.redirectInput(new File(this.stdin));
-            }
+            return;
         }
-        if (this.stdout != null)
-        {
-            if (RedirectCfg.NULL.equalsIgnoreCase(this.stdout))
-            {
-                pb.redirectOutput(java.lang.ProcessBuilder.Redirect.DISCARD);
-            }
-            else
-            {
-                pb.redirectOutput(new File(this.stdout));
-            }
-        }
-        if (this.stderr != null)
-        {
-            if (RedirectCfg.NULL.equalsIgnoreCase(this.stderr))
-            {
-                pb.redirectError(java.lang.ProcessBuilder.Redirect.DISCARD);
-            }
-            else
-            {
-                pb.redirectError(new File(this.stderr));
-            }
-        }
+
+        redirect(this.stdin, pb::redirectInput);
+        redirect(this.stdout, pb::redirectOutput);
+        redirect(this.stderr, pb::redirectError);
     }
 }

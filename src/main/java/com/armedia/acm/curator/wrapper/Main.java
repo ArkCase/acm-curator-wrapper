@@ -32,8 +32,10 @@ import org.slf4j.LoggerFactory;
 
 import com.armedia.acm.curator.wrapper.conf.CommandCfg;
 import com.armedia.acm.curator.wrapper.conf.Configuration;
-import com.armedia.acm.curator.wrapper.conf.CuratorSession;
 import com.armedia.acm.curator.wrapper.conf.OperationMode;
+import com.armedia.acm.curator.wrapper.module.CuratorSession;
+import com.armedia.acm.curator.wrapper.module.Leader;
+import com.armedia.acm.curator.wrapper.module.Mutex;
 
 public class Main
 {
@@ -55,11 +57,11 @@ public class Main
         {
         case leader:
             this.log.info("Creating a leadership selector");
-            return cfg.getLeader().acquire(session);
+            return new Leader(cfg.getLeader(), session).acquire();
 
         case mutex:
             this.log.info("Creating a mutex lock");
-            return cfg.getMutex().acquire(session);
+            return new Mutex(cfg.getMutex(), session).acquire();
 
         default:
             this.log.info("No-op wrapper created");
@@ -81,7 +83,7 @@ public class Main
             return cmd.run();
         }
 
-        try (CuratorSession session = this.cfg.getZookeeper().connect())
+        try (CuratorSession session = new CuratorSession(this.cfg))
         {
             if (!session.isEnabled())
             {

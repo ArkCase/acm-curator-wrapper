@@ -1,4 +1,4 @@
-package com.armedia.acm.curator.wrapper.conf;
+package com.armedia.acm.curator.wrapper.module;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
@@ -7,16 +7,40 @@ import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.armedia.acm.curator.wrapper.conf.MutexCfg;
+import com.armedia.acm.curator.wrapper.tools.Tools;
+
 public class Mutex
 {
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private final String baseMutexPath;
+    private final String mutexName;
+    private final String mutexPath;
     private final CuratorSession connection;
 
-    Mutex(CuratorSession connection)
+    public Mutex(MutexCfg cfg, CuratorSession connection)
     {
         this.connection = connection;
-        this.baseMutexPath = String.format("%s/mutex", connection.basePath);
+        String baseMutexPath = String.format("%s/mutex", connection.getBasePath());
+        this.mutexName = cfg.getName();
+        this.mutexPath = (Tools.isEmpty(this.mutexName) //
+                ? baseMutexPath //
+                : String.format("%s/%s", baseMutexPath, this.mutexName) //
+        );
+    }
+
+    public String getMutexName()
+    {
+        return this.mutexName;
+    }
+
+    public String getMutexPath()
+    {
+        return this.mutexPath;
+    }
+
+    public CuratorSession getConnection()
+    {
+        return this.connection;
     }
 
     public AutoCloseable acquire() throws Exception
@@ -38,11 +62,7 @@ public class Mutex
     {
         this.connection.assertEnabled();
 
-        final String mutexPath = (Configuration.isEmpty(mutexName) //
-                ? this.baseMutexPath //
-                : String.format("%s/%s", this.baseMutexPath, mutexName) //
-        );
-        final InterProcessMutex lock = new InterProcessMutex(this.connection.client, mutexPath);
+        final InterProcessMutex lock = new InterProcessMutex(this.connection.getClient(), this.mutexPath);
         if ((maxWait != null) && !maxWait.isNegative() && !maxWait.isZero())
         {
             if (!lock.acquire(maxWait.toMillis(), TimeUnit.MILLISECONDS))

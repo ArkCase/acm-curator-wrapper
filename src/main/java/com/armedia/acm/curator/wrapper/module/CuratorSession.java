@@ -1,4 +1,4 @@
-package com.armedia.acm.curator.wrapper.conf;
+package com.armedia.acm.curator.wrapper.module;
 
 import java.util.Collections;
 import java.util.Map;
@@ -9,36 +9,46 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.curator.framework.recipes.leader.LeaderSelector;
+import org.apache.curator.retry.RetryForever;
+import org.apache.zookeeper.common.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.armedia.acm.curator.wrapper.conf.Configuration;
+import com.armedia.acm.curator.wrapper.conf.CuratorSessionCfg;
+import com.armedia.acm.curator.wrapper.conf.RetryCfg;
+import com.armedia.acm.curator.wrapper.tools.Tools;
+
 public class CuratorSession implements AutoCloseable
 {
-    private static final String BASE_PATH = "/arkcase";
+    private static final int MIN_SESSION_TIMEOUT = 1;
+    private static final int MIN_CONNECTION_TIMEOUT = 100;
+
+    private static final String ROOT_PATH = "/arkcase";
+
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    CuratorFramework client = null;
+    private CuratorFramework client = null;
     private Thread cleanup = null;
-    final String basePath;
+    private final String basePath;
     private final Map<Integer, LeaderSelector> selectors = Collections.synchronizedMap(new TreeMap<>());
 
-    CuratorSession(ZookeeperCfg cfg) throws InterruptedException
+    public CuratorSession(Configuration configuration)
+            throws InterruptedException
     {
-        if ((cfg == null) || Configuration.isEmpty(cfg.connect))
+        CuratorSessionCfg cfg = Tools.ifNull(configuration.getSession(), CuratorSessionCfg::new);
+
+        if (Tools.isEmpty(cfg.getConnect()))
         {
             this.basePath = null;
             this.log.info("No ZooKeeper configuration");
             return;
         }
 
-        this.basePath = (Configuration.isEmpty(cfg.basePath) //
-                ? CuratorSession.BASE_PATH //
-                : cfg.basePath //
-        );
+        int sessionTimeout = Math.max(CuratorSession.MIN_SESSION_TIMEOUT, cfg.getSessionTimeout());
+        int connectionTimeout = Math.max(CuratorSession.MIN_CONNECTION_TIMEOUT, cfg.getConnectionTimeout());
 
-        this.log.info("ZooKeeper connection string: [{}]", cfg.connect);
-
-        RetryCfg retry = (cfg.retry != null ? cfg.retry : new RetryCfg());
+        RetryCfg retry = Tools.ifNull(cfg.getRetry(), RetryCfg::new);
         RetryPolicy retryPolicy = retry.asRetryPolicy();
 
         this.log.debug("Clustering retry policy is {}, with a delay of {}", retryPolicy.getClass().getSimpleName(),
@@ -48,8 +58,17 @@ public class CuratorSession implements AutoCloseable
             this.log.debug("Clustering retry count is {}", retry.getCount());
         }
 
+        this.basePath = (StringUtils.isEmpty(cfg.getBasePath()) //
+                ? CuratorSession.ROOT_PATH //
+                : cfg.getBasePath() //
+        );
+
+        this.log.info("ZooKeeper connection string: [{}]", cfg.getConnect());
+
+        retryPolicy = Tools.ifNull(retryPolicy, () -> new RetryForever(1000));
+
         this.log.trace("Initializing the Curator client");
-        this.client = CuratorFrameworkFactory.newClient(cfg.connect, cfg.sessionTimeout, cfg.connectionTimeout, retryPolicy);
+        this.client = CuratorFrameworkFactory.newClient(cfg.getConnect(), sessionTimeout, connectionTimeout, retryPolicy);
         this.log.info("Starting the Curator client");
         this.client.start();
         this.client.blockUntilConnected();
@@ -63,7 +82,7 @@ public class CuratorSession implements AutoCloseable
         return this.basePath;
     }
 
-    public synchronized CuratorFramework getClient()
+    synchronized CuratorFramework getClient()
     {
         return this.client;
     }
