@@ -1,4 +1,4 @@
-package com.armedia.acm.curatorwrapper.conf;
+package com.armedia.acm.curator.wrapper.conf;
 
 public class ZookeeperCfg
 {

@@ -1,4 +1,4 @@
-package com.armedia.acm.curatorwrapper;
+package com.armedia.acm.curator.wrapper;
 
 /*-
  * #%L
@@ -30,10 +30,10 @@ package com.armedia.acm.curatorwrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.armedia.acm.curatorwrapper.conf.CommandCfg;
-import com.armedia.acm.curatorwrapper.conf.Configuration;
-import com.armedia.acm.curatorwrapper.conf.CuratorSession;
-import com.armedia.acm.curatorwrapper.conf.OperationMode;
+import com.armedia.acm.curator.wrapper.conf.CommandCfg;
+import com.armedia.acm.curator.wrapper.conf.Configuration;
+import com.armedia.acm.curator.wrapper.conf.CuratorSession;
+import com.armedia.acm.curator.wrapper.conf.OperationMode;
 
 public class Main
 {

@@ -25,7 +25,7 @@
  * #L%
  */
 
-package com.armedia.acm.curatorwrapper;
+package com.armedia.acm.curator.wrapper;
 
 import java.io.File;
 import java.io.FileNotFoundException;

@@ -1,4 +1,4 @@
-package com.armedia.acm.curatorwrapper.conf;
+package com.armedia.acm.curator.wrapper.conf;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
