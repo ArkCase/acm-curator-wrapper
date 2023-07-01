@@ -1,0 +1,60 @@
+zookeeper:
+  # The zookeeper connection string (default: none)
+  connect: "zookeper connect string"
+
+  # Session timeout in ms (default: 15 seconds)
+  sessionTimeout: session-timeout-in-ms
+
+  # The base path for whatever will be requested below (default: none)
+  basePath: "the-zookeeper-base-path-for-wrapper-construction"
+
+  # Connection retry parameters
+  retry:
+    # If set to 0 or lower, it will retry forever
+    count: number of retries
+    # Minimum is 100ms
+    delay: milliseconds between retries
+
+# Information about the command/executable being wrapped
+command:
+  # The working directory (default: ${user.dir})
+  workdir: "/the/working/directory"
+
+  # The actual command to run (required, no default)
+  execute: [ command, args, one, by, one ]
+  # execute: "in-string-format-to-be-run-using-a-shell"
+
+  # The environment to set for the command. Variables will be expanded to resolve
+  # system properties before being set for execution (default: none)
+  env:
+    key1: value1
+    key2: value2
+    # ....
+    keyN: valueN
+
+  # Whether to clear out the environment and leave *only* the above values (default: false)
+  cleanEnv: true|false
+
+  # Which file(s) to redirect each of the main I/O streams (default: none, inherit I/O from the parent process)
+  redirect:
+    stdin: "/input-file"
+    stdout: "/output-file"
+    stderr: "/error-file"
+
+# The mode of operation. If none is given, the command is executed directly
+mode: ("direct"|"leader"|"mutex"|"barrier")
+
+leader:
+  name: "the name of the leader task to request"
+  requeue: true|false
+
+mutex:
+  name: "the mutex name"
+  timeout: acquisition-timeout-in-millis
+
+# Possibly add this "soon", but it won't work like in Java b/c one has to manually set
+# or remove the barrier. The implementation causes callers to just sit and wait until
+# the barrier node is created.
+# barrier:
+#   name: "the barrier name"
+#   timeout: wait-timeout-in-millis
