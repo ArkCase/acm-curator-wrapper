@@ -68,6 +68,17 @@
 		</repository>
 	</repositories>
 
+	<pluginRepositories>
+		<pluginRepository>
+			<id>arkcase</id>
+			<name>ArkCase Repository</name>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<url>https://project.armedia.com/nexus/content/repositories/arkcase/</url>
+		</pluginRepository>
+	</pluginRepositories>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.apache.curator</groupId>
@@ -114,7 +125,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>license-maven-plugin</artifactId>
-				<version>1.16</version>
+				<version>2.1.0</version>
 				<configuration>
 					<licenseName>arkcase_license</licenseName>
 					<licenseResolver>classpath://arkcase</licenseResolver>
