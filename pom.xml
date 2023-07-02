@@ -46,16 +46,27 @@
 
 	<distributionManagement>
 		<snapshotRepository>
-			<id>${snapshot-repository.id}</id>
-			<name>${snapshot-repository.name}</name>
-			<url>${snapshot-repository.url}</url>
+			<id>arkcase.snapshot</id>
+			<name>ArkCase Snapshots</name>
+			<url>https://project.armedia.com/nexus/content/repositories/arkcase.snapshot/</url>
 		</snapshotRepository>
 		<repository>
-			<id>${release-repository.id}</id>
-			<name>${release-repository.name}</name>
-			<url>${release-repository.url}</url>
+			<id>arkcase.release</id>
+			<name>ArkCase Release</name>
+			<url>https://project.armedia.com/nexus/content/repositories/arkcase.release/</url>
 		</repository>
 	</distributionManagement>
+
+	<repositories>
+		<repository>
+			<id>arkcase</id>
+			<name>ArkCase Repository</name>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<url>https://project.armedia.com/nexus/content/repositories/arkcase/</url>
+		</repository>
+	</repositories>
 
 	<dependencies>
 		<dependency>
@@ -153,8 +164,7 @@
 					<target>${java.version}</target>
 					<compilerId>eclipse</compilerId>
 					<compilerArguments>
-						<properties>
-							${project.basedir}/.settings/org.eclipse.jdt.core.prefs</properties>
+						<properties>${project.basedir}/.settings/org.eclipse.jdt.core.prefs</properties>
 					</compilerArguments>
 					<showWarnings>true</showWarnings>
 					<showDeprecation>true</showDeprecation>
@@ -206,28 +216,24 @@
 				<artifactId>maven-shade-plugin</artifactId>
 				<version>3.2.1</version>
 				<configuration>
-					<finalName>
-						${executableName}-${project.version}${build.number}-exe</finalName>
+					<finalName>${executableName}-${project.version}${build.number}-exe</finalName>
 					<createSourcesJar>true</createSourcesJar>
 					<createDependencyReducedPom>false</createDependencyReducedPom>
 					<shadedArtifactAttached>true</shadedArtifactAttached>
 					<shadedClassifierName>exe</shadedClassifierName>
 					<transformers>
-						<transformer
-							implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-							<mainClass>com.armedia.acm.configserver.Main</mainClass>
+						<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+							<mainClass>com.armedia.acm.curator.wrapper.Main</mainClass>
 						</transformer>
-						<transformer
-							implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-						<transformer
-							implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
+						<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+						<transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
 							<addHeader>false</addHeader>
 						</transformer>
 					</transformers>
 				</configuration>
 			</plugin>
 			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
+				<groupId> org.codehaus.mojo</groupId>
 				<artifactId>buildnumber-maven-plugin</artifactId>
 				<version>1.4</version>
 				<executions>
@@ -253,12 +259,15 @@
 							<goal>create</goal>
 						</goals>
 						<configuration>
-							<doCheck>false</doCheck>
+							<doCheck>
+								false</doCheck>
 							<doUpdate>false</doUpdate>
 							<shortRevisionLength>8</shortRevisionLength>
-							<getRevisionOnlyOnce>true</getRevisionOnlyOnce>
+							<getRevisionOnlyOnce>
+								true</getRevisionOnlyOnce>
 							<revisionOnScmFailure>unknown</revisionOnScmFailure>
-							<buildNumberPropertyName>buildNumber</buildNumberPropertyName>
+							<buildNumberPropertyName>
+								buildNumber</buildNumberPropertyName>
 						</configuration>
 					</execution>
 					<execution>
