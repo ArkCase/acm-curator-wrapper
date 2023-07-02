@@ -15,7 +15,6 @@ import org.apache.zookeeper.common.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.armedia.acm.curator.wrapper.conf.Cfg;
 import com.armedia.acm.curator.wrapper.conf.RetryCfg;
 import com.armedia.acm.curator.wrapper.conf.SessionCfg;
 import com.armedia.acm.curator.wrapper.tools.Tools;
@@ -37,10 +36,16 @@ public class Session implements AutoCloseable
     private final String basePath;
     private final Map<Integer, LeaderSelector> selectors = Collections.synchronizedMap(new TreeMap<>());
 
-    public Session(Cfg configuration)
+    public Session(SessionCfg cfg)
             throws InterruptedException
     {
-        SessionCfg cfg = Tools.ifNull(configuration.getSession(), SessionCfg::new);
+        this(cfg, false);
+    }
+
+    public Session(SessionCfg cfg, boolean async)
+            throws InterruptedException
+    {
+        cfg = Tools.ifNull(cfg, SessionCfg::new);
 
         if (Tools.isEmpty(cfg.getConnect()))
         {
@@ -85,7 +90,10 @@ public class Session implements AutoCloseable
         this.client = CuratorFrameworkFactory.newClient(cfg.getConnect(), sessionTimeout, connectionTimeout, retryPolicy);
         this.log.info("Starting the Curator client");
         this.client.start();
-        this.client.blockUntilConnected();
+        if (!async)
+        {
+            this.client.blockUntilConnected();
+        }
         this.cleanup = new Thread(this::cleanup, "ZookeeperConnection-Cleanup");
         this.cleanup.setDaemon(false);
         Runtime.getRuntime().addShutdownHook(this.cleanup);
