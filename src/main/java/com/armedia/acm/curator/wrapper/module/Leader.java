@@ -27,7 +27,7 @@ public class Leader extends Recipe
     private final String leaderName;
     private final String leaderPath;
 
-    public Leader(Session session, String name)
+    private Leader(Session session, String name)
     {
         super(session);
         String baseLeaderPath = String.format("%s/leader", session.getBasePath());

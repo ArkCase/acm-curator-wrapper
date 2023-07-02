@@ -45,11 +45,19 @@ public class Wrapper
         {
         case leader:
             this.log.info("Creating a leadership selector");
-            return new Leader(session, this.cfg.getName()).awaitLeadership();
+            return new Leader.Builder() //
+                    .name(this.cfg.getName()) //
+                    .build(session) //
+                    .awaitLeadership() //
+            ;
 
         case mutex:
             this.log.info("Creating a mutex lock");
-            return new Mutex(session, this.cfg.getName()).acquire();
+            return new Mutex.Builder() //
+                    .name(this.cfg.getName()) //
+                    .build(session) //
+                    .acquire() //
+            ;
 
         default:
             this.log.info("No-op wrapper created");

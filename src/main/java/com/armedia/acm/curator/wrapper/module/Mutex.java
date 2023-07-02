@@ -16,7 +16,7 @@ public class Mutex extends Recipe
     private final String mutexName;
     private final String mutexPath;
 
-    public Mutex(Session session, String name)
+    private Mutex(Session session, String name)
     {
         super(session);
         String baseMutexPath = String.format("%s/mutex", session.getBasePath());
