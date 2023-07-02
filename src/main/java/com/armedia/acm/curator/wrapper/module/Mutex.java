@@ -80,4 +80,25 @@ public class Mutex extends Recipe
             lock.release();
         };
     }
+
+    public static class Builder
+    {
+        private String name;
+
+        public String name()
+        {
+            return this.name;
+        }
+
+        public Builder name(String name)
+        {
+            this.name = name;
+            return this;
+        }
+
+        public Mutex build(Session session)
+        {
+            return new Mutex(session, this.name);
+        }
+    }
 }

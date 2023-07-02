@@ -322,4 +322,25 @@ public class Leader extends Recipe
     {
         return execute(null, maxWait);
     }
+
+    public static class Builder
+    {
+        private String name;
+
+        public String name()
+        {
+            return this.name;
+        }
+
+        public Builder name(String name)
+        {
+            this.name = name;
+            return this;
+        }
+
+        public Leader build(Session session)
+        {
+            return new Leader(session, this.name);
+        }
+    }
 }
