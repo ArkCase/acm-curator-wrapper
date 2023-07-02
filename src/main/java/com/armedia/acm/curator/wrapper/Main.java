@@ -43,9 +43,9 @@ import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.representer.Representer;
 
+import com.armedia.acm.curator.tools.Tools;
 import com.armedia.acm.curator.wrapper.conf.SessionCfg;
 import com.armedia.acm.curator.wrapper.conf.WrapperCfg;
-import com.armedia.acm.curator.wrapper.tools.Tools;
 
 public class Main
 {

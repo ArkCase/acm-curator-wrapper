@@ -24,7 +24,7 @@
  * along with ArkCase. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package com.armedia.acm.curator.wrapper.module;
+package com.armedia.acm.curator.module;
 
 import java.time.Duration;
 import java.util.concurrent.BrokenBarrierException;
@@ -43,7 +43,7 @@ import org.apache.curator.framework.recipes.leader.LeaderSelectorListenerAdapter
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.armedia.acm.curator.wrapper.tools.Tools;
+import com.armedia.acm.curator.tools.Tools;
 
 public class Leader extends Recipe
 {

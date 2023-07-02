@@ -24,7 +24,7 @@
  * along with ArkCase. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package com.armedia.acm.curator.wrapper.module;
+package com.armedia.acm.curator.module;
 
 import java.util.Objects;
 

@@ -24,7 +24,7 @@
  * along with ArkCase. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package com.armedia.acm.curator.wrapper.module;
+package com.armedia.acm.curator.module;
 
 import java.util.Collections;
 import java.util.Map;
@@ -41,7 +41,7 @@ import org.apache.zookeeper.common.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.armedia.acm.curator.wrapper.tools.Tools;
+import com.armedia.acm.curator.tools.Tools;
 
 public class Session implements AutoCloseable
 {

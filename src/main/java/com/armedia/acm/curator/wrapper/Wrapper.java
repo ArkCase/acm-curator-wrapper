@@ -41,15 +41,15 @@ import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.armedia.acm.curator.module.Leader;
+import com.armedia.acm.curator.module.Mutex;
+import com.armedia.acm.curator.module.Session;
+import com.armedia.acm.curator.tools.CheckedSupplier;
+import com.armedia.acm.curator.tools.Tools;
 import com.armedia.acm.curator.wrapper.conf.ExecCfg;
 import com.armedia.acm.curator.wrapper.conf.OperationMode;
 import com.armedia.acm.curator.wrapper.conf.RedirectCfg;
 import com.armedia.acm.curator.wrapper.conf.WrapperCfg;
-import com.armedia.acm.curator.wrapper.module.Leader;
-import com.armedia.acm.curator.wrapper.module.Mutex;
-import com.armedia.acm.curator.wrapper.module.Session;
-import com.armedia.acm.curator.wrapper.tools.CheckedSupplier;
-import com.armedia.acm.curator.wrapper.tools.Tools;
 
 public class Wrapper
 {
