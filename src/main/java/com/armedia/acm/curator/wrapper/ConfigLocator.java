@@ -44,11 +44,14 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.representer.Representer;
+
+import com.armedia.acm.curator.wrapper.conf.Cfg;
+import com.armedia.acm.curator.wrapper.tools.Tools;
 
 public class ConfigLocator
 {
@@ -76,11 +79,6 @@ public class ConfigLocator
             USER_DIR = f;
         }
         DEFAULT_CONFIG = new File(ConfigLocator.USER_DIR, ConfigLocator.DEFAULT_CONFIG_NAME);
-    }
-
-    private static boolean isEmpty(String s)
-    {
-        return (s == null) || (s.length() == 0);
     }
 
     private static String getSysProp(String name)
@@ -238,92 +236,6 @@ public class ConfigLocator
         ;
     }
 
-    public static ConfigLocator load() throws IOException
-    {
-        String config = null;
-
-        config = ConfigLocator.getDefaultProp("config");
-        if (config != null)
-        {
-            String encoding = ConfigLocator.getDefaultProp("config.encoding");
-            Charset charset = null;
-            if (encoding != null)
-            {
-                charset = Charset.forName(encoding);
-            }
-            return ConfigLocator.load(config, charset);
-        }
-
-        File f = ConfigLocator.validate(ConfigLocator.DEFAULT_CONFIG, false);
-        if (f != null)
-        {
-            return ConfigLocator.load(f);
-        }
-
-        // There's no default configurations, so just return an "empty" configuration
-        return new ConfigLocator(null);
-    }
-
-    public static ConfigLocator load(String config) throws IOException
-    {
-        return ConfigLocator.load(config, null);
-    }
-
-    public static ConfigLocator load(String config, Charset encoding) throws IOException
-    {
-        Objects.requireNonNull(config, "Must provide a non-null path string to read");
-        return ConfigLocator.load(new File(config), ConfigLocator.sanitize(encoding));
-    }
-
-    public static ConfigLocator load(File config) throws IOException
-    {
-        return ConfigLocator.load(config, null);
-    }
-
-    public static ConfigLocator load(File config, Charset encoding) throws IOException
-    {
-        Objects.requireNonNull(config, "Must provide a non-null File to read");
-        return ConfigLocator.load(config.toPath(), encoding);
-    }
-
-    public static ConfigLocator load(Path config) throws IOException
-    {
-        return ConfigLocator.load(config, null);
-    }
-
-    public static ConfigLocator load(Path config, Charset encoding) throws IOException
-    {
-        Objects.requireNonNull(config, "Must provide a non-null Path to read");
-        try (Reader r = Files.newBufferedReader(config,
-                ConfigLocator.sanitize(encoding)))
-        {
-            return ConfigLocator.load(r);
-        }
-    }
-
-    public static ConfigLocator load(InputStream config, Charset encoding) throws IOException
-    {
-        Objects.requireNonNull(config, "Must provide a non-null InputStream to read");
-        try (Reader r = new InputStreamReader(config, ConfigLocator.sanitize(encoding)))
-        {
-            return ConfigLocator.load();
-        }
-    }
-
-    public static ConfigLocator load(ReadableByteChannel config, Charset encoding) throws IOException
-    {
-        Objects.requireNonNull(config, "Must provide a non-null ReadableByteChannel to read");
-        try (Reader r = Channels.newReader(config, ConfigLocator.sanitize(encoding)))
-        {
-            return ConfigLocator.load(r);
-        }
-    }
-
-    public static ConfigLocator load(Reader config) throws IOException
-    {
-        return new ConfigLocator(Objects.requireNonNull(config, "Must provide a non-null ReadableByteChannel to read"));
-    }
-
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final Map<String, Object> yaml;
@@ -336,7 +248,7 @@ public class ConfigLocator
             return;
         }
 
-        this.yaml = Collections.unmodifiableMap(new Yaml().load(src));
+        this.yaml = Collections.unmodifiableMap(null);
     }
 
     public Object get(String name)
@@ -365,7 +277,7 @@ public class ConfigLocator
         List<String> parts = new LinkedList<>();
         for (String s : name.split("\\Q.\\E"))
         {
-            if (ConfigLocator.isEmpty(s))
+            if (Tools.isEmpty(s))
             {
                 throw new IllegalArgumentException(
                         "The property name can't begin with or end with a dot, or have two consecutive dots (" + name + ")");
@@ -410,5 +322,38 @@ public class ConfigLocator
 
         Object ret = ConfigLocator.getDefaultProp(name);
         return (ret != null) ? ret : def;
+    }
+
+    public static Cfg load(ReadableByteChannel c)
+    {
+        return ConfigLocator.load(c, null);
+    }
+
+    public static Cfg load(ReadableByteChannel c, Charset charset)
+    {
+        return ConfigLocator.load(Channels.newInputStream(c), charset);
+    }
+
+    public static Cfg load(InputStream in) throws IOException
+    {
+        return ConfigLocator.load(in, null);
+    }
+
+    public static Cfg load(InputStream in, Charset charset)
+    {
+        if (charset == null)
+        {
+            charset = StandardCharsets.UTF_8;
+        }
+        return ConfigLocator.load(new InputStreamReader(in, charset));
+    }
+
+    public static Cfg load(Reader r)
+    {
+        Representer representer = new Representer();
+        representer.getPropertyUtils().setSkipMissingProperties(true);
+        Cfg cfg = new Yaml(representer).loadAs(r, Cfg.class);
+        // Apply variable overrides?
+        return cfg;
     }
 }

@@ -2,8 +2,6 @@ package com.armedia.acm.curator.wrapper.conf;
 
 public class RedirectCfg
 {
-    public static final String NULL = "null";
-
     String stdin = null;
     String stdout = null;
     String stderr = null;

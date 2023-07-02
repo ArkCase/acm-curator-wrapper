@@ -1,11 +1,17 @@
 package com.armedia.acm.curator.wrapper;
 
+import org.apache.commons.cli.Options;
+
 import com.armedia.acm.curator.wrapper.conf.Cfg;
 import com.armedia.acm.curator.wrapper.module.Session;
 
 public class Main
 {
     private final Cfg cfg;
+
+    private static final Options OPTIONS = new Options() //
+            .addOption("c", "config", true, "The configuration file to use") //
+    ;
 
     private Main(String... args)
     {

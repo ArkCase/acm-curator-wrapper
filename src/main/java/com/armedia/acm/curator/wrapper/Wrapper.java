@@ -27,6 +27,8 @@ import com.armedia.acm.curator.wrapper.tools.Tools;
 
 public class Wrapper
 {
+    private static final String NULL = "null";
+
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final WrapperCfg cfg;
     private final CheckedSupplier<Session> session;
@@ -58,7 +60,7 @@ public class Wrapper
     private void redirect(String path, Consumer<Redirect> tgt)
     {
         Redirect redirect = Redirect.INHERIT;
-        if (RedirectCfg.NULL.equalsIgnoreCase(path))
+        if (Wrapper.NULL.equalsIgnoreCase(path))
         {
             redirect = Redirect.DISCARD;
         }

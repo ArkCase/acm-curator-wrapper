@@ -5,6 +5,9 @@ session:
   # Session timeout in ms (default: 15 seconds)
   sessionTimeout: session-timeout-in-ms
 
+  # Connection timeout in ms (default: 5 seconds)
+  connectionTimeout: connection-timeout-in-ms
+
   # The base path for whatever will be requested below (default: none)
   basePath: "the-zookeeper-base-path-for-the-wrapper's-objects"
 
@@ -39,7 +42,7 @@ wrapper:
       keyN: valueN
 
     # Whether to clear out the environment and leave *only* the above values (default: false)
-    cleanEnv: true|false
+    cleanEnv: false
 
     # Which file(s) to redirect each of the main I/O streams (default: none, inherit I/O from the parent process)
     redirect:
