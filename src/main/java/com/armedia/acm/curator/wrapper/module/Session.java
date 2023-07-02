@@ -15,8 +15,6 @@ import org.apache.zookeeper.common.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.armedia.acm.curator.wrapper.conf.RetryCfg;
-import com.armedia.acm.curator.wrapper.conf.SessionCfg;
 import com.armedia.acm.curator.wrapper.tools.Tools;
 
 public class Session implements AutoCloseable
@@ -36,61 +34,49 @@ public class Session implements AutoCloseable
     private final String basePath;
     private final Map<Integer, LeaderSelector> selectors = Collections.synchronizedMap(new TreeMap<>());
 
-    public Session(SessionCfg cfg)
+    private Session(Builder cfg)
             throws InterruptedException
     {
-        this(cfg, false);
-    }
-
-    public Session(SessionCfg cfg, boolean async)
-            throws InterruptedException
-    {
-        cfg = Tools.ifNull(cfg, SessionCfg::new);
-
-        if (Tools.isEmpty(cfg.getConnect()))
+        if (Tools.isEmpty(cfg.connect))
         {
             this.basePath = null;
             this.log.info("No ZooKeeper configuration");
             return;
         }
 
-        int sessionTimeout = Math.max(Session.MIN_SESSION_TIMEOUT, cfg.getSessionTimeout());
-        int connectionTimeout = Math.max(Session.MIN_CONNECTION_TIMEOUT, cfg.getConnectionTimeout());
-
-        RetryCfg retry = Tools.ifNull(cfg.getRetry(), RetryCfg::new);
+        int sessionTimeout = Math.max(Session.MIN_SESSION_TIMEOUT, cfg.sessionTimeout);
+        int connectionTimeout = Math.max(Session.MIN_CONNECTION_TIMEOUT, cfg.connectionTimeout);
 
         RetryPolicy retryPolicy = null;
-        final int delay = Math.max(Session.MIN_DELAY, Math.min(Session.MAX_DELAY, retry.getDelay()));
-        if (retry.getCount() <= 0)
+        final int delay = Math.max(Session.MIN_DELAY, Math.min(Session.MAX_DELAY, cfg.retryDelay));
+        if (cfg.retryCount <= 0)
         {
             retryPolicy = new RetryForever(delay);
+            this.log.debug("Clustering retry is infinite");
         }
         else
         {
-            retryPolicy = new ExponentialBackoffRetry(delay, retry.getCount());
+            this.log.debug("Clustering retry count is {}", cfg.retryCount);
+            retryPolicy = new ExponentialBackoffRetry(delay, cfg.retryCount);
         }
 
         this.log.debug("Clustering retry policy is {}, with a delay of {}", retryPolicy.getClass().getSimpleName(),
-                retry.getDelay());
-        if (retry.getCount() > 0)
-        {
-            this.log.debug("Clustering retry count is {}", retry.getCount());
-        }
+                cfg.retryDelay);
 
-        this.basePath = (StringUtils.isEmpty(cfg.getBasePath()) //
+        this.basePath = (StringUtils.isEmpty(cfg.basePath) //
                 ? Session.ROOT_PATH //
-                : cfg.getBasePath() //
+                : cfg.basePath //
         );
 
-        this.log.info("ZooKeeper connection string: [{}]", cfg.getConnect());
+        this.log.info("ZooKeeper connection string: [{}]", cfg.connect);
 
         retryPolicy = Tools.ifNull(retryPolicy, () -> new RetryForever(1000));
 
         this.log.trace("Initializing the Curator client");
-        this.client = CuratorFrameworkFactory.newClient(cfg.getConnect(), sessionTimeout, connectionTimeout, retryPolicy);
+        this.client = CuratorFrameworkFactory.newClient(cfg.connect, sessionTimeout, connectionTimeout, retryPolicy);
         this.log.info("Starting the Curator client");
         this.client.start();
-        if (!async)
+        if (cfg.waitForConnection)
         {
             this.client.blockUntilConnected();
         }
@@ -181,6 +167,120 @@ public class Session implements AutoCloseable
                 }
                 this.cleanup = null;
             }
+        }
+    }
+
+    public static class Builder
+    {
+        private static final Integer DEF_RETRY_DELAY = 1000;
+        private static final Integer DEF_RETRY_COUNT = 0;
+
+        private String connect = null;
+        private int sessionTimeout = 0;
+        private int connectionTimeout = 0;
+        private String basePath = null;
+
+        private int retryDelay = Builder.DEF_RETRY_DELAY;
+        private int retryCount = Builder.DEF_RETRY_COUNT;
+
+        private boolean waitForConnection = true;
+
+        public String connect()
+        {
+            return this.connect;
+        }
+
+        public Builder connect(String connect)
+        {
+            this.connect = connect;
+            return this;
+        }
+
+        public int sessionTimeout()
+        {
+            if (this.sessionTimeout < 0)
+            {
+                this.sessionTimeout = 0;
+            }
+            return this.sessionTimeout;
+        }
+
+        public Builder sessionTimeout(int sessionTimeout)
+        {
+            this.sessionTimeout = Math.max(0, sessionTimeout);
+            return this;
+        }
+
+        public int connectionTimeout()
+        {
+            if (this.connectionTimeout < 0)
+            {
+                this.connectionTimeout = 0;
+            }
+            return this.connectionTimeout;
+        }
+
+        public Builder connectionTimeout(int connectionTimeout)
+        {
+            this.connectionTimeout = Math.max(0, connectionTimeout);
+            return this;
+        }
+
+        public String basePath()
+        {
+            return this.basePath;
+        }
+
+        public Builder basePath(String basePath)
+        {
+            this.basePath = basePath;
+            return this;
+        }
+
+        public int retryCount()
+        {
+            return this.retryCount;
+        }
+
+        public Builder retryCount(int retryCount)
+        {
+            if (retryCount <= 0)
+            {
+                retryCount = Builder.DEF_RETRY_COUNT;
+            }
+            this.retryCount = retryCount;
+            return this;
+        }
+
+        public int retryDelay()
+        {
+            return this.retryDelay;
+        }
+
+        public Builder retryDelay(int retryDelay)
+        {
+            if (retryDelay <= 0)
+            {
+                retryDelay = Builder.DEF_RETRY_DELAY;
+            }
+            this.retryDelay = retryDelay;
+            return this;
+        }
+
+        public boolean waitForConnection()
+        {
+            return this.waitForConnection;
+        }
+
+        public Builder waitForConnection(boolean wait)
+        {
+            this.waitForConnection = wait;
+            return this;
+        }
+
+        public Session build() throws InterruptedException
+        {
+            return new Session(this);
         }
     }
 }

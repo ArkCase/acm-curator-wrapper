@@ -1,5 +1,6 @@
 package com.armedia.acm.curator.wrapper.conf;
 
+import com.armedia.acm.curator.wrapper.module.Session;
 import com.armedia.acm.curator.wrapper.tools.Tools;
 
 public class SessionCfg
@@ -70,5 +71,20 @@ public class SessionCfg
     public void setRetry(RetryCfg retry)
     {
         this.retry = Tools.ifNull(retry, RetryCfg::new);
+    }
+
+    public Session build() throws InterruptedException
+    {
+        // This helps ensure we have a value
+        RetryCfg retry = getRetry();
+        return new Session.Builder() //
+                .connect(this.connect) //
+                .sessionTimeout(this.sessionTimeout) //
+                .connectionTimeout(this.connectionTimeout) //
+                .basePath(this.basePath) //
+                .retryCount(retry.getCount()) //
+                .retryDelay(retry.getDelay()) //
+                .build() //
+        ;
     }
 }

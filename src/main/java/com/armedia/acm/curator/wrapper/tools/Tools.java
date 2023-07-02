@@ -52,6 +52,16 @@ public class Tools
         return null;
     }
 
+    public static <T> T identity(T t)
+    {
+        return t;
+    }
+
+    public static <T> void noop(T t)
+    {
+        // Do nothing...
+    }
+
     public static void noop()
     {
         // DO nothing

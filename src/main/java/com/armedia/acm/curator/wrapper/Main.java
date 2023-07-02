@@ -3,7 +3,7 @@ package com.armedia.acm.curator.wrapper;
 import org.apache.commons.cli.Options;
 
 import com.armedia.acm.curator.wrapper.conf.Cfg;
-import com.armedia.acm.curator.wrapper.module.Session;
+import com.armedia.acm.curator.wrapper.conf.SessionCfg;
 
 public class Main
 {
@@ -20,14 +20,10 @@ public class Main
         this.cfg = null;
     }
 
-    private Session newSession() throws InterruptedException
-    {
-        return new Session(this.cfg.getSession());
-    }
-
     private int run() throws Exception
     {
-        return new Wrapper(this::newSession, this.cfg.getWrapper()).run();
+        final SessionCfg cfg = this.cfg.getSession();
+        return new Wrapper(cfg::build, this.cfg.getWrapper()).run();
     }
 
     public static void main(String... args) throws Exception
