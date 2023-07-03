@@ -29,6 +29,7 @@ package com.armedia.acm.curator.wrapper;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -70,18 +71,28 @@ public class Wrapper
         {
         case leader:
             this.log.info("Creating a leadership selector");
-            return new Leader.Builder() //
+            Leader leader = new Leader.Builder() //
                     .name(this.cfg.getName()) //
                     .build(session) //
-                    .awaitLeadership() //
+            ;
+            if (this.cfg.getTimeout() > 0)
+            {
+                return leader.awaitLeadership(Duration.ofMillis(this.cfg.getTimeout()));
+            }
+            return leader.awaitLeadership() //
             ;
 
         case mutex:
             this.log.info("Creating a mutex lock");
-            return new Mutex.Builder() //
+            Mutex mutex = new Mutex.Builder() //
                     .name(this.cfg.getName()) //
                     .build(session) //
-                    .acquire() //
+            ;
+            if (this.cfg.getTimeout() > 0)
+            {
+                return mutex.acquire(Duration.ofMillis(this.cfg.getTimeout()));
+            }
+            return mutex.acquire() //
             ;
 
         default:
