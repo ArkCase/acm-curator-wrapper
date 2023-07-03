@@ -28,8 +28,9 @@ package com.armedia.acm.curator.wrapper.conf;
 
 public class RetryCfg
 {
-    private static final Integer DEF_DELAY = 1000;
-    private static final Integer DEF_COUNT = 0;
+    protected static final int MIN_DELAY = 100;
+    protected static final int DEF_DELAY = 1000;
+    protected static final int DEF_COUNT = 0;
 
     private int count = RetryCfg.DEF_COUNT;
     private int delay = RetryCfg.DEF_DELAY;
@@ -63,10 +64,6 @@ public class RetryCfg
 
     public void setDelay(int delay)
     {
-        if (delay < 0)
-        {
-            delay = RetryCfg.DEF_DELAY;
-        }
-        this.delay = delay;
+        this.delay = Math.max(RetryCfg.MIN_DELAY, delay);
     }
 }
