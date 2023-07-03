@@ -1,0 +1,51 @@
+session:
+  # The zookeeper connection string (default: none)
+  connect: "zookeper connect string"
+
+  # Session timeout in ms (default: 15 seconds)
+  sessionTimeout: session-timeout-in-ms
+
+  # Connection timeout in ms (default: 5 seconds)
+  connectionTimeout: connection-timeout-in-ms
+
+  # The base path for whatever will be requested below (default: none)
+  basePath: "the-zookeeper-base-path-for-the-wrapper's-objects"
+
+  # Connection retry parameters
+  retry:
+    # If set to 0 or lower, it will retry forever
+    count: number of retries
+    # Minimum is 100ms
+    delay: milliseconds between retries
+
+wrapper:
+  # The mode of operation. If none is given, the command is executed directly
+  mode: ("direct"|"leader"|"mutex"|"barrier")
+  name: "the name of the leader task, mutex, or barrier to use"
+  timeout: timeout-in-millis
+
+  # Information about the command/executable being wrapped
+  exec:
+    # The working directory (default: ${user.dir})
+    workdir: "/the/working/directory"
+
+    # The actual command to run (required, no default)
+    command: [ command, args, one, by, one ]
+    # command: "in-string-format-to-be-run-using-a-shell"
+
+    # The environment to set for the command. Variables will be expanded to resolve
+    # system properties before being set for execution (default: none)
+    env:
+      key1: value1
+      key2: value2
+      # ....
+      keyN: valueN
+
+    # Whether to clear out the environment and leave *only* the above values (default: false)
+    cleanEnv: false
+
+    # Which file(s) to redirect each of the main I/O streams (default: none, inherit I/O from the parent process)
+    redirect:
+      stdin: "/input-file"
+      stdout: "/output-file"
+      stderr: "/error-file"
