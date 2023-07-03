@@ -27,7 +27,6 @@
 package com.armedia.acm.curator.wrapper;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 import java.util.ArrayList;
@@ -91,7 +90,7 @@ public class Wrapper
         }
     }
 
-    private void redirect(String path, Consumer<Redirect> tgt)
+    private void redirect(boolean from, String path, Consumer<Redirect> tgt)
     {
         Redirect redirect = Redirect.INHERIT;
         if (Wrapper.NULL.equalsIgnoreCase(path))
@@ -100,7 +99,8 @@ public class Wrapper
         }
         else if (path != null)
         {
-            redirect = Redirect.from(new File(path));
+            final File f = new File(path);
+            redirect = (from ? Redirect.from(f) : Redirect.to(f));
         }
         tgt.accept(redirect);
     }
@@ -112,12 +112,12 @@ public class Wrapper
             return;
         }
 
-        redirect(cfg.getStdin(), pb::redirectInput);
-        redirect(cfg.getStdout(), pb::redirectOutput);
-        redirect(cfg.getStderr(), pb::redirectError);
+        redirect(true, cfg.getStdin(), pb::redirectInput);
+        redirect(false, cfg.getStdout(), pb::redirectOutput);
+        redirect(false, cfg.getStderr(), pb::redirectError);
     }
 
-    private int run(ExecCfg cfg) throws Exception
+    private int run(ExecCfg cfg)
     {
         final Object command = cfg.getCommand();
         if (command == null)
@@ -126,30 +126,18 @@ public class Wrapper
             return 1;
         }
 
-        Objects.requireNonNull(command);
-        File workdir = new File(".");
+        File workdir = Tools.CWD;
         if (cfg.getWorkdir() != null)
         {
-            workdir = new File(cfg.getWorkdir());
-            try
+            workdir = Tools.canonicalize(new File(cfg.getWorkdir()));
+            if (!workdir.exists() || !workdir.isDirectory())
             {
-                workdir = workdir.getCanonicalFile();
-            }
-            catch (IOException e)
-            {
-                workdir = workdir.getAbsoluteFile();
-            }
-            finally
-            {
-                if (!workdir.exists() || !workdir.isDirectory())
-                {
-                    throw new FileNotFoundException("The working directory [" + workdir + "] doesn't exist or isn't a directory");
-                }
+                this.log.error("The working directory [{}] doesn't exist or isn't a directory", workdir);
+                return 1;
             }
         }
 
         final List<String> cmd;
-        Objects.requireNonNull(command, "Must provide a non-null exec value");
         if (Collection.class.isInstance(command))
         {
             Collection<?> c = Collection.class.cast(command);
@@ -167,6 +155,8 @@ public class Wrapper
         }
         else
         {
+            // TODO: we need to support a shell-safe tokenizer here that supports quotes for
+            // parameters that require spaces
             StringTokenizer tok = new StringTokenizer(command.toString());
             cmd = new ArrayList<>(tok.countTokens());
             while (tok.hasMoreTokens())
@@ -177,7 +167,8 @@ public class Wrapper
 
         if (cmd.isEmpty())
         {
-            throw new IllegalStateException("The command array must contain at least one value");
+            this.log.error("The command is empty, cannot continue");
+            return 1;
         }
         ProcessBuilder pb = new ProcessBuilder(cmd);
         pb.directory(workdir);
@@ -197,7 +188,20 @@ public class Wrapper
         this.log.debug("Launching the process command {}", pb.command());
         this.log.trace("Using the environment:\n{}", pb.environment());
 
-        return pb.start().waitFor();
+        try
+        {
+            return pb.start().waitFor();
+        }
+        catch (IOException e)
+        {
+            this.log.error("IOException caught running the command", e);
+            return 1;
+        }
+        catch (InterruptedException e)
+        {
+            this.log.error("Interrupted waiting for the command to complete", e);
+            return 1;
+        }
     }
 
     public int run() throws Exception

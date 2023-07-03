@@ -26,41 +26,47 @@
  */
 package com.armedia.acm.curator.wrapper.conf;
 
-import com.armedia.acm.curator.tools.Tools;
-
 public class RetryCfg
 {
     private static final Integer DEF_DELAY = 1000;
     private static final Integer DEF_COUNT = 0;
 
-    private Integer count = null;
-    private Integer delay = null;
+    private int count = RetryCfg.DEF_COUNT;
+    private int delay = RetryCfg.DEF_DELAY;
 
     public int getCount()
     {
-        if (this.count == null)
+        if (this.count < 0)
         {
             this.count = RetryCfg.DEF_COUNT;
         }
         return this.count;
     }
 
-    public void setCount(Integer count)
+    public void setCount(int count)
     {
-        this.count = Tools.coalesce(count, RetryCfg.DEF_COUNT);
+        if (count < 0)
+        {
+            count = RetryCfg.DEF_COUNT;
+        }
+        this.count = count;
     }
 
     public int getDelay()
     {
-        if (this.delay == null)
+        if (this.delay < 0)
         {
             this.delay = RetryCfg.DEF_DELAY;
         }
         return this.delay;
     }
 
-    public void setDelay(Integer delay)
+    public void setDelay(int delay)
     {
-        this.delay = Tools.coalesce(delay, RetryCfg.DEF_DELAY);
+        if (delay < 0)
+        {
+            delay = RetryCfg.DEF_DELAY;
+        }
+        this.delay = delay;
     }
 }

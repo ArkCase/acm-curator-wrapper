@@ -102,6 +102,6 @@ public class WrapperCfg
 
     public void setExec(ExecCfg exec)
     {
-        this.exec = Tools.ifNull(this.exec, ExecCfg::new);
+        this.exec = Tools.ifNull(exec, ExecCfg::new);
     }
 }

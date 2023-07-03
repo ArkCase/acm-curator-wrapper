@@ -75,7 +75,7 @@ public class Main
 
         public void setSession(SessionCfg session)
         {
-            this.session = Tools.ifNull(this.session, SessionCfg::new);
+            this.session = Tools.ifNull(session, SessionCfg::new);
         }
 
         public WrapperCfg getWrapper()
@@ -89,7 +89,7 @@ public class Main
 
         public void setWrapper(WrapperCfg wrapper)
         {
-            this.wrapper = Tools.ifNull(this.wrapper, WrapperCfg::new);
+            this.wrapper = Tools.ifNull(wrapper, WrapperCfg::new);
         }
     }
 
