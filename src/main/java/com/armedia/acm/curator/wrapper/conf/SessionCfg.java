@@ -26,7 +26,7 @@
  */
 package com.armedia.acm.curator.wrapper.conf;
 
-import com.armedia.acm.curator.module.Session;
+import com.armedia.acm.curator.Session;
 import com.armedia.acm.curator.tools.Tools;
 
 public class SessionCfg

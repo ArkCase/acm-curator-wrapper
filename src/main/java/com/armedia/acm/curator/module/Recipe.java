@@ -28,6 +28,8 @@ package com.armedia.acm.curator.module;
 
 import java.util.Objects;
 
+import com.armedia.acm.curator.Session;
+
 public class Recipe
 {
     protected final Session session;

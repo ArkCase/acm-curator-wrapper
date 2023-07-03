@@ -41,9 +41,9 @@ import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.armedia.acm.curator.Session;
 import com.armedia.acm.curator.module.Leader;
 import com.armedia.acm.curator.module.Mutex;
-import com.armedia.acm.curator.module.Session;
 import com.armedia.acm.curator.tools.CheckedSupplier;
 import com.armedia.acm.curator.tools.Tools;
 import com.armedia.acm.curator.wrapper.conf.ExecCfg;

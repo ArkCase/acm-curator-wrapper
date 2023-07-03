@@ -23,6 +23,7 @@
 		<curator.version>5.5.0</curator.version>
 		<snakeyaml.version>1.14</snakeyaml.version>
 		<commons-cli.version>1.2</commons-cli.version>
+		<build.number>-SNAPSHOT-${scmBranch}-${buildNumber}</build.number>
 	</properties>
 
 	<organization>
@@ -227,7 +228,7 @@
 				<artifactId>maven-shade-plugin</artifactId>
 				<version>3.2.1</version>
 				<configuration>
-					<finalName>${executableName}-${project.version}${build.number}-exe</finalName>
+					<finalName>${project.artifactId}-${project.version}${build.number}-exe</finalName>
 					<createSourcesJar>true</createSourcesJar>
 					<createDependencyReducedPom>false</createDependencyReducedPom>
 					<shadedArtifactAttached>true</shadedArtifactAttached>
@@ -242,6 +243,14 @@
 						</transformer>
 					</transformers>
 				</configuration>
+                <executions>
+				<execution>
+					<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId> org.codehaus.mojo</groupId>

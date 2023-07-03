@@ -33,6 +33,7 @@ import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.armedia.acm.curator.Session;
 import com.armedia.acm.curator.tools.Tools;
 
 public class Mutex extends Recipe
