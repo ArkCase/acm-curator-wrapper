@@ -27,7 +27,10 @@
 package com.armedia.acm.curator.wrapper.conf;
 
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
+
+import com.armedia.acm.curator.tools.Tools;
 
 public class ExecCfg
 {
@@ -39,7 +42,16 @@ public class ExecCfg
 
     public String getWorkdir()
     {
+        if (this.workdir == null)
+        {
+            this.workdir = Tools.CWD.getPath();
+        }
         return this.workdir;
+    }
+
+    public void setWorkdir(String workdir)
+    {
+        this.workdir = Tools.ifNull(workdir, Tools.CWD::getPath);
     }
 
     public Object getCommand()
@@ -47,9 +59,23 @@ public class ExecCfg
         return this.command;
     }
 
+    public void setCommand(Object command)
+    {
+        this.command = command;
+    }
+
     public Map<String, String> getEnv()
     {
+        if (this.env == null)
+        {
+            this.env = new LinkedHashMap<>();
+        }
         return this.env;
+    }
+
+    public void setEnv(Map<String, String> env)
+    {
+        this.env = Tools.ifNull(env, LinkedHashMap::new);
     }
 
     public boolean isCleanEnv()
@@ -57,8 +83,22 @@ public class ExecCfg
         return this.cleanEnv;
     }
 
+    public void setCleanEnv(boolean cleanEnv)
+    {
+        this.cleanEnv = cleanEnv;
+    }
+
     public RedirectCfg getRedirect()
     {
+        if (this.redirect == null)
+        {
+            this.redirect = new RedirectCfg();
+        }
         return this.redirect;
+    }
+
+    public void setRedirect(RedirectCfg redirect)
+    {
+        this.redirect = Tools.ifNull(redirect, RedirectCfg::new);
     }
 }

@@ -26,10 +26,34 @@
  */
 package com.armedia.acm.curator.tools;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.function.Supplier;
 
 public class Tools
 {
+    public static final File CWD = Tools.canonicalize(new File("."));
+
+    public static File canonicalize(File f)
+    {
+        if (f == null)
+        {
+            return null;
+        }
+        try
+        {
+            f = f.getCanonicalFile();
+        }
+        catch (IOException e)
+        {
+            // Ignore
+        }
+        finally
+        {
+            f = f.getAbsoluteFile();
+        }
+        return f;
+    }
 
     public static boolean isEmpty(CharSequence str)
     {

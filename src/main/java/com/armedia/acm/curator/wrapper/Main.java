@@ -55,21 +55,8 @@ public class Main
     private static final File DEFAULT_CONFIG;
     static
     {
-        File f = new File(".");
-        try
-        {
-            f = f.getCanonicalFile();
-        }
-        catch (Exception e)
-        {
-            // ignore
-        }
-        finally
-        {
-            f = f.getAbsoluteFile();
-        }
-        Main.LOG.trace("Default config: [{}]", f);
-        DEFAULT_CONFIG = new File(f, "curator-wrapper.yaml");
+        DEFAULT_CONFIG = new File(Tools.CWD, "curator-wrapper.yaml");
+        Main.LOG.trace("Default config: [{}]", Main.DEFAULT_CONFIG);
     }
 
     public static class Cfg
