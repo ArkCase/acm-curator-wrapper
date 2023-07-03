@@ -120,6 +120,12 @@ public class Wrapper
     private int run(ExecCfg cfg) throws Exception
     {
         final Object command = cfg.getCommand();
+        if (command == null)
+        {
+            this.log.warn("No command was given to wrap, returning an exit status of 1");
+            return 1;
+        }
+
         Objects.requireNonNull(command);
         File workdir = new File(".");
         if (cfg.getWorkdir() != null)

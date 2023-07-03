@@ -69,7 +69,7 @@ public class Main
             f = f.getAbsoluteFile();
         }
         Main.LOG.trace("Default config: [{}]", f);
-        DEFAULT_CONFIG = f;
+        DEFAULT_CONFIG = new File(f, "curator-wrapper.yaml");
     }
 
     public static class Cfg
@@ -171,7 +171,7 @@ public class Main
 
             String cfgStr = (cmdLine.hasOption('c') //
                     ? cmdLine.getOptionValue('c') //
-                    : Main.getDefaultConfig() //
+                    : null //
             );
             final Reader cfgReader;
             if ("-".equals(cfgStr))
@@ -180,22 +180,44 @@ public class Main
                 Main.LOG.info("Reading the configuration from stdin (charset = {})", charset.name());
                 cfgReader = new InputStreamReader(System.in, charset);
             }
-            else
+            else if (cfgStr != null)
             {
                 // Reading from the referenced file/stream
                 Main.LOG.info("Reading the configuration from the file at [{}] (charset = {})", cfgStr, charset.name());
                 cfgReader = Files.newBufferedReader(new File(cfgStr).toPath(), charset);
             }
-
-            Main.LOG.debug("Parsing the configuration YAML");
-            final Cfg cfg;
-            try (Reader r = cfgReader)
+            else
             {
-                Representer representer = new Representer();
-                representer.getPropertyUtils().setSkipMissingProperties(true);
-                cfg = new Yaml(representer).loadAs(r, Cfg.class);
+                cfgStr = Main.getDefaultConfig();
+                File f = new File(cfgStr);
+                if (f.exists())
+                {
+                    Main.LOG.info("Reading the configuration from the file at [{}] (charset = {})", cfgStr, charset.name());
+                    cfgReader = Files.newBufferedReader(new File(cfgStr).toPath(), charset);
+                }
+                else
+                {
+                    Main.LOG.info("No configuration detected, using defaults");
+                    cfgReader = null;
+                }
             }
-            Main.LOG.trace("Configuration parsed");
+
+            final Cfg cfg;
+            if (cfgReader != null)
+            {
+                Main.LOG.debug("Parsing the configuration YAML");
+                try (Reader r = cfgReader)
+                {
+                    Representer representer = new Representer();
+                    representer.getPropertyUtils().setSkipMissingProperties(true);
+                    cfg = new Yaml(representer).loadAs(r, Cfg.class);
+                }
+                Main.LOG.trace("Configuration parsed");
+            }
+            else
+            {
+                cfg = new Cfg();
+            }
 
             Main.LOG.debug("Launching the main loop");
             final SessionCfg session = cfg.getSession();
@@ -203,7 +225,6 @@ public class Main
         }
         catch (Exception e)
         {
-            Main.usage();
             throw e;
         }
     }
