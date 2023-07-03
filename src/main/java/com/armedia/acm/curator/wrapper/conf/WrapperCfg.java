@@ -34,13 +34,13 @@ import com.armedia.acm.curator.tools.Tools;
 
 public class WrapperCfg
 {
-    private static final OperationMode DEFAULT_MODE = OperationMode.leader;
-    private static final Map<String, Object> NO_PARAMS = Collections.emptyMap();
+    protected static final OperationMode DEFAULT_MODE = OperationMode.leader;
+    protected static final Map<String, Object> NO_PARAMS = Collections.emptyMap();
 
     private OperationMode mode = WrapperCfg.DEFAULT_MODE;
     private String name = null;
     private long timeout = 0;
-    private Map<String, Object> params = WrapperCfg.NO_PARAMS;
+    private Map<String, ?> params = null;
     private ExecCfg exec = new ExecCfg();
 
     public OperationMode getMode()
@@ -77,7 +77,7 @@ public class WrapperCfg
         this.timeout = Math.max(0, timeout);
     }
 
-    public Map<String, Object> getParams()
+    public Map<String, ?> getParams()
     {
         if (this.params == null)
         {
@@ -86,7 +86,7 @@ public class WrapperCfg
         return this.params;
     }
 
-    public void setParams(Map<String, Object> params)
+    public void setParams(Map<String, ?> params)
     {
         this.params = Tools.ifNull(params, LinkedHashMap::new);
     }
