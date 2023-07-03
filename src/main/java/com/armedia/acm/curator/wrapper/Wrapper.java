@@ -185,7 +185,7 @@ public class Wrapper
             env.putAll(cfg.getEnv());
         }
 
-        this.log.debug("Launching the process command {}", pb.command());
+        this.log.info("Launching the wrapped command {}", pb.command());
         this.log.trace("Using the environment:\n{}", pb.environment());
 
         try
