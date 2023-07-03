@@ -19,13 +19,16 @@
 		<java.version>11</java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<build.number>-SNAPSHOT-${scmBranch}-${buildNumber}</build.number>
+
 		<commons-text.version>1.10.0</commons-text.version>
 		<curator.version>5.5.0</curator.version>
 		<snakeyaml.version>1.14</snakeyaml.version>
 		<commons-cli.version>1.2</commons-cli.version>
 		<logback.version>1.4.8</logback.version>
 		<logback-colorizer.version>1.0.1</logback-colorizer.version>
-		<build.number>-SNAPSHOT-${scmBranch}-${buildNumber}</build.number>
+		<junit-jupiter.version>5.9.3</junit-jupiter.version>
+		<easymock.version>5.1.0</easymock.version>
 	</properties>
 
 	<organization>
@@ -112,6 +115,18 @@
 			<artifactId>logback-colorizer</artifactId>
 			<version>${logback-colorizer.version}</version>
 			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<version>${junit-jupiter.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.easymock</groupId>
+			<artifactId>easymock</artifactId>
+			<version>${easymock.version}</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
