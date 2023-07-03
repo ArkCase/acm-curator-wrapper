@@ -32,6 +32,8 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
 
 import org.apache.commons.cli.CommandLine;
@@ -208,7 +210,10 @@ public class Main
 
             Main.LOG.debug("Launching the main loop");
             final SessionCfg session = cfg.getSession();
-            return new Wrapper(session::build, cfg.getWrapper()).run();
+            final Instant start = Instant.now();
+            int ret = new Wrapper(session::build, cfg.getWrapper()).run();
+            Main.LOG.info("Command exited with status {} after {}", ret, Duration.between(start, Instant.now()));
+            return ret;
         }
         catch (Exception e)
         {
