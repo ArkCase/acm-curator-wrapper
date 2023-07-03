@@ -105,13 +105,13 @@
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 			<version>${logback.version}</version>
-			<scope>compile</scope>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.tuxdude.logback.extensions</groupId>
 			<artifactId>logback-colorizer</artifactId>
 			<version>${logback-colorizer.version}</version>
-			<scope>compile</scope>
+			<scope>runtime</scope>
 		</dependency>
 	</dependencies>
 
