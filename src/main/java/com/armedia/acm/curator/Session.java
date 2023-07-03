@@ -58,13 +58,13 @@ public class Session implements AutoCloseable
 
     private static final String ROOT_PATH = "/arkcase";
 
-    private static int sanitizeValue(int timeout, int def, int min)
+    private static int sanitizeValue(int value, int def, int min)
     {
-        if (timeout <= 0)
+        if (value <= 0)
         {
             return def;
         }
-        return Math.max(min, timeout);
+        return Math.max(min, value);
     }
 
     public static int sanitizeRetryDelay(int retryDelay)
