@@ -73,6 +73,19 @@ public class Tools
         return null;
     }
 
+    public static <T extends CharSequence> T ifEmpty(T t, Supplier<? extends T> s)
+    {
+        if (!Tools.isEmpty(t))
+        {
+            return t;
+        }
+        if (s != null)
+        {
+            return s.get();
+        }
+        return null;
+    }
+
     public static <T> T ifNull(T t, Supplier<? extends T> s)
     {
         if (t != null)

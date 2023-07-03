@@ -26,7 +26,6 @@
  */
 package com.armedia.acm.curator.wrapper.conf;
 
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -36,7 +35,7 @@ public class ExecCfg
 {
     private String workdir = null;
     private Object command = null;
-    private Map<String, String> env = Collections.emptyMap();
+    private Map<String, String> env = null;
     private boolean cleanEnv = false;
     private RedirectCfg redirect = new RedirectCfg();
 
@@ -51,7 +50,7 @@ public class ExecCfg
 
     public void setWorkdir(String workdir)
     {
-        this.workdir = Tools.ifNull(workdir, Tools.CWD::getPath);
+        this.workdir = Tools.ifEmpty(workdir, Tools.CWD::getPath);
     }
 
     public Object getCommand()
