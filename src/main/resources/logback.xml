@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration>
+<configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+	<property scope="context" name="COLORIZER_COLORS" value="boldred@white,yellow@black,green@,blue@,cyan@" />
+	<conversionRule conversionWord="colorize" converterClass="org.tuxdude.logback.extensions.LogColorizer" />
+
+	<appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%d{ISO8601} [%-16t] %colorize(%-5level) %m%n</pattern>
+		</encoder>
+	</appender>
+
+	<logger name="console" level="INFO">
+		<appender-ref ref="console"/>
+	</logger>
+
+	<root level="INFO">
+		<appender-ref ref="console"/>
+	</root>
+</configuration>
