@@ -55,6 +55,11 @@ public class Tools
         return f;
     }
 
+    public static String trim(String s)
+    {
+        return (s != null ? s.trim() : s);
+    }
+
     public static boolean isEmpty(CharSequence str)
     {
         return ((str == null) || (str.length() == 0));
@@ -71,6 +76,15 @@ public class Tools
             }
         }
         return null;
+    }
+
+    public static <T extends CharSequence> T ifEmpty(T t, T d)
+    {
+        if (!Tools.isEmpty(t))
+        {
+            return t;
+        }
+        return d;
     }
 
     public static <T extends CharSequence> T ifEmpty(T t, Supplier<? extends T> s)
