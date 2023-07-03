@@ -26,6 +26,7 @@
  */
 package com.armedia.acm.curator.wrapper.conf;
 
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -60,6 +61,18 @@ public class ExecCfg
 
     public void setCommand(Object command)
     {
+        if (command != null)
+        {
+            if (String.class.isInstance(command) || Collection.class.isInstance(command) || command.getClass().isArray())
+            {
+                this.command = command;
+            }
+            else
+            {
+                throw new IllegalArgumentException(
+                        String.format("The command must be a string, a Collection, or an array: %s", command.getClass()));
+            }
+        }
         this.command = command;
     }
 
