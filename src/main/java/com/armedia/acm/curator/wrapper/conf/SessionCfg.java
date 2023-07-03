@@ -35,10 +35,6 @@ import com.armedia.acm.curator.tools.Tools;
 public class SessionCfg
 {
     public static final String DEFAULT_PORT = String.valueOf(2181);
-    public static final int MIN_SESSION_TIMEOUT = 1000;
-    public static final int DEFAULT_SESSION_TIMEOUT = 15000;
-    public static final int MIN_CONNECTION_TIMEOUT = 100;
-    public static final int DEFAULT_CONNECTION_TIMEOUT = 5000;
 
     protected static final Pattern HOSTPORT_PARSER = Pattern
             .compile("^((?:[a-z0-9][-a-z0-9]*)?[a-z0-9](?:[.](?:[a-z0-9][-a-z0-9]*)?[a-z0-9])*)(?::([1-9][0-9]*))?$",
@@ -105,46 +101,30 @@ public class SessionCfg
 
     public int getSessionTimeout()
     {
-        if (this.sessionTimeout <= 0)
+        if (this.sessionTimeout < Session.MIN_SESSION_TIMEOUT)
         {
-            this.sessionTimeout = SessionCfg.DEFAULT_SESSION_TIMEOUT;
-        }
-        else if (this.sessionTimeout < SessionCfg.MIN_SESSION_TIMEOUT)
-        {
-            this.sessionTimeout = SessionCfg.MIN_SESSION_TIMEOUT;
+            this.sessionTimeout = Session.sanitizeSessionTimeout(this.sessionTimeout);
         }
         return this.sessionTimeout;
     }
 
     public void setSessionTimeout(int sessionTimeout)
     {
-        if (sessionTimeout <= 0)
-        {
-            sessionTimeout = SessionCfg.DEFAULT_SESSION_TIMEOUT;
-        }
-        this.sessionTimeout = Math.max(SessionCfg.MIN_SESSION_TIMEOUT, sessionTimeout);
+        this.sessionTimeout = Session.sanitizeSessionTimeout(sessionTimeout);
     }
 
     public int getConnectionTimeout()
     {
-        if (this.connectionTimeout <= 0)
+        if (this.connectionTimeout < Session.MIN_CONNECTION_TIMEOUT)
         {
-            this.connectionTimeout = SessionCfg.DEFAULT_CONNECTION_TIMEOUT;
-        }
-        else if (this.connectionTimeout < SessionCfg.MIN_CONNECTION_TIMEOUT)
-        {
-            this.connectionTimeout = SessionCfg.MIN_CONNECTION_TIMEOUT;
+            this.connectionTimeout = Session.sanitizeConnectionTimeout(this.connectionTimeout);
         }
         return this.connectionTimeout;
     }
 
     public void setConnectionTimeout(int connectionTimeout)
     {
-        if (connectionTimeout <= 0)
-        {
-            connectionTimeout = SessionCfg.DEFAULT_CONNECTION_TIMEOUT;
-        }
-        this.connectionTimeout = Math.max(SessionCfg.MIN_CONNECTION_TIMEOUT, connectionTimeout);
+        this.connectionTimeout = Session.sanitizeConnectionTimeout(connectionTimeout);
     }
 
     public String getBasePath()

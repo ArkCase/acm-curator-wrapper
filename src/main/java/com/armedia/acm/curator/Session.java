@@ -44,13 +44,48 @@ import com.armedia.acm.curator.tools.Tools;
 
 public class Session implements AutoCloseable
 {
-    private static final int MIN_DELAY = 100;
-    private static final int MAX_DELAY = 60000;
+    public static final int MIN_SESSION_TIMEOUT = 1000;
+    public static final int DEFAULT_SESSION_TIMEOUT = 15000;
 
-    private static final int MIN_SESSION_TIMEOUT = 1;
-    private static final int MIN_CONNECTION_TIMEOUT = 100;
+    public static final int MIN_CONNECTION_TIMEOUT = 100;
+    public static final int DEFAULT_CONNECTION_TIMEOUT = 5000;
+
+    private static final int DEFAULT_RETRY_DELAY = 1000;
+    private static final int MIN_RETRY_DELAY = 100;
+    private static final int MAX_RETRY_DELAY = 60000;
+
+    private static final int DEFAULT_RETRY_COUNT = 0;
 
     private static final String ROOT_PATH = "/arkcase";
+
+    private static int sanitizeValue(int timeout, int def, int min)
+    {
+        if (timeout <= 0)
+        {
+            return def;
+        }
+        return Math.max(min, timeout);
+    }
+
+    public static int sanitizeRetryDelay(int retryDelay)
+    {
+        return Session.sanitizeValue(retryDelay, Session.DEFAULT_RETRY_DELAY, Session.MIN_RETRY_DELAY);
+    }
+
+    public static int sanitizeRetryCount(int retryCount)
+    {
+        return Session.sanitizeValue(retryCount, Session.DEFAULT_RETRY_COUNT, 0);
+    }
+
+    public static int sanitizeSessionTimeout(int sessionTimeout)
+    {
+        return Session.sanitizeValue(sessionTimeout, Session.DEFAULT_SESSION_TIMEOUT, Session.MIN_SESSION_TIMEOUT);
+    }
+
+    public static int sanitizeConnectionTimeout(int connectionTimeout)
+    {
+        return Session.sanitizeValue(connectionTimeout, Session.DEFAULT_CONNECTION_TIMEOUT, Session.MIN_CONNECTION_TIMEOUT);
+    }
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -59,49 +94,49 @@ public class Session implements AutoCloseable
     private final String basePath;
     private final Map<Integer, LeaderSelector> selectors = Collections.synchronizedMap(new TreeMap<>());
 
-    private Session(Builder cfg)
+    private Session(Builder builder)
             throws InterruptedException
     {
-        if (Tools.isEmpty(cfg.connect))
+        if (Tools.isEmpty(builder.connect))
         {
             this.basePath = null;
             this.log.info("No ZooKeeper configuration");
             return;
         }
 
-        int sessionTimeout = Math.max(Session.MIN_SESSION_TIMEOUT, cfg.sessionTimeout);
-        int connectionTimeout = Math.max(Session.MIN_CONNECTION_TIMEOUT, cfg.connectionTimeout);
+        int sessionTimeout = builder.sessionTimeout;
+        int connectionTimeout = builder.connectionTimeout;
 
         RetryPolicy retryPolicy = null;
-        final int delay = Math.max(Session.MIN_DELAY, Math.min(Session.MAX_DELAY, cfg.retryDelay));
-        if (cfg.retryCount <= 0)
+        final int delay = Math.min(Session.MAX_RETRY_DELAY, builder.retryDelay);
+        if (builder.retryCount <= 0)
         {
             retryPolicy = new RetryForever(delay);
             this.log.debug("Clustering retry is infinite");
         }
         else
         {
-            this.log.debug("Clustering retry count is {}", cfg.retryCount);
-            retryPolicy = new ExponentialBackoffRetry(delay, cfg.retryCount);
+            this.log.debug("Clustering retry count is {}", builder.retryCount);
+            retryPolicy = new ExponentialBackoffRetry(delay, builder.retryCount);
         }
 
         this.log.debug("Clustering retry policy is {}, with a delay of {}", retryPolicy.getClass().getSimpleName(),
-                cfg.retryDelay);
+                builder.retryDelay);
 
-        this.basePath = (Tools.isEmpty(cfg.basePath) //
+        this.basePath = (Tools.isEmpty(builder.basePath) //
                 ? Session.ROOT_PATH //
-                : cfg.basePath //
+                : builder.basePath //
         );
 
-        this.log.info("ZooKeeper connection string: [{}]", cfg.connect);
+        this.log.info("ZooKeeper connection string: [{}]", builder.connect);
 
         retryPolicy = Tools.ifNull(retryPolicy, () -> new RetryForever(1000));
 
         this.log.trace("Initializing the Curator client");
-        this.client = CuratorFrameworkFactory.newClient(cfg.connect, sessionTimeout, connectionTimeout, retryPolicy);
+        this.client = CuratorFrameworkFactory.newClient(builder.connect, sessionTimeout, connectionTimeout, retryPolicy);
         this.log.info("Starting the Curator client");
         this.client.start();
-        if (cfg.waitForConnection)
+        if (builder.waitForConnection)
         {
             this.client.blockUntilConnected();
         }
@@ -197,16 +232,14 @@ public class Session implements AutoCloseable
 
     public static class Builder
     {
-        private static final Integer DEF_RETRY_DELAY = 1000;
-        private static final Integer DEF_RETRY_COUNT = 0;
 
         private String connect = null;
-        private int sessionTimeout = 0;
-        private int connectionTimeout = 0;
+        private int sessionTimeout = Session.DEFAULT_SESSION_TIMEOUT;
+        private int connectionTimeout = Session.DEFAULT_CONNECTION_TIMEOUT;
         private String basePath = null;
 
-        private int retryDelay = Builder.DEF_RETRY_DELAY;
-        private int retryCount = Builder.DEF_RETRY_COUNT;
+        private int retryDelay = Session.DEFAULT_RETRY_DELAY;
+        private int retryCount = Session.DEFAULT_RETRY_COUNT;
 
         private boolean waitForConnection = true;
 
@@ -223,31 +256,23 @@ public class Session implements AutoCloseable
 
         public int sessionTimeout()
         {
-            if (this.sessionTimeout < 0)
-            {
-                this.sessionTimeout = 0;
-            }
             return this.sessionTimeout;
         }
 
         public Builder sessionTimeout(int sessionTimeout)
         {
-            this.sessionTimeout = Math.max(0, sessionTimeout);
+            this.sessionTimeout = Session.sanitizeSessionTimeout(sessionTimeout);
             return this;
         }
 
         public int connectionTimeout()
         {
-            if (this.connectionTimeout < 0)
-            {
-                this.connectionTimeout = 0;
-            }
             return this.connectionTimeout;
         }
 
         public Builder connectionTimeout(int connectionTimeout)
         {
-            this.connectionTimeout = Math.max(0, connectionTimeout);
+            this.connectionTimeout = Session.sanitizeSessionTimeout(connectionTimeout);
             return this;
         }
 
@@ -269,11 +294,7 @@ public class Session implements AutoCloseable
 
         public Builder retryCount(int retryCount)
         {
-            if (retryCount <= 0)
-            {
-                retryCount = Builder.DEF_RETRY_COUNT;
-            }
-            this.retryCount = retryCount;
+            this.retryCount = Session.sanitizeValue(retryCount, Session.DEFAULT_RETRY_COUNT, 0);
             return this;
         }
 
@@ -284,11 +305,7 @@ public class Session implements AutoCloseable
 
         public Builder retryDelay(int retryDelay)
         {
-            if (retryDelay <= 0)
-            {
-                retryDelay = Builder.DEF_RETRY_DELAY;
-            }
-            this.retryDelay = retryDelay;
+            this.retryDelay = Session.sanitizeValue(retryDelay, Session.DEFAULT_RETRY_DELAY, Session.MIN_RETRY_DELAY);
             return this;
         }
 
