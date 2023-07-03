@@ -99,11 +99,11 @@ public class Leader extends Recipe
             {
                 try
                 {
-                    Leader.this.log.info("Assuming Leadership (# {})", selectorKey);
+                    Leader.this.log.info("Leadership acquired on path [{}]  (# {})", Leader.this.leaderPath, selectorKey);
                     awaitLeadership.await();
                     Leader.this.log.info("Signalled the start of the execution, awaiting completion (# {})", selectorKey);
                     awaitCompletion.await();
-                    Leader.this.log.info("Execution completed; the latch returned normally (# {})", selectorKey);
+                    Leader.this.log.info("Execution completed; the barrier returned normally (# {})", selectorKey);
                 }
                 catch (BrokenBarrierException e)
                 {
@@ -151,7 +151,7 @@ public class Leader extends Recipe
         // We will block in this await() invocation until leadership is acquired.
         while (true)
         {
-            this.log.trace("Waiting for leadership to be attained (# {})", selectorKey);
+            this.log.info("Waiting for leadership to be attained (# {})", selectorKey);
             try
             {
                 if (!maxWait.isNegative() && !maxWait.isZero())
