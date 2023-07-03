@@ -37,7 +37,6 @@ import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.curator.framework.recipes.leader.LeaderSelector;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.retry.RetryForever;
-import org.apache.zookeeper.common.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,7 +88,7 @@ public class Session implements AutoCloseable
         this.log.debug("Clustering retry policy is {}, with a delay of {}", retryPolicy.getClass().getSimpleName(),
                 cfg.retryDelay);
 
-        this.basePath = (StringUtils.isEmpty(cfg.basePath) //
+        this.basePath = (Tools.isEmpty(cfg.basePath) //
                 ? Session.ROOT_PATH //
                 : cfg.basePath //
         );
