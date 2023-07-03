@@ -24,7 +24,7 @@
  * along with ArkCase. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package com.armedia.acm.curator.module;
+package com.armedia.acm.curator.recipe;
 
 import java.time.Duration;
 import java.util.concurrent.BrokenBarrierException;
