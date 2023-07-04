@@ -24,16 +24,25 @@
  * along with ArkCase. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package com.armedia.acm.curator.wrapper.conf;
+package com.armedia.acm.curator.tools;
 
-public enum OperationMode
+import java.util.function.Function;
+
+@FunctionalInterface
+public interface CheckedFunction<P, R> extends Function<P, R>
 {
-    //
-    direct, //
-    leader, //
-    mutex, //
-    init, //
-    // barrier, //
-    //
-    ;
+    public R applyChecked(P p) throws Exception;
+
+    @Override
+    public default R apply(P p)
+    {
+        try
+        {
+            return applyChecked(p);
+        }
+        catch (Exception e)
+        {
+            throw new RuntimeException(e);
+        }
+    }
 }

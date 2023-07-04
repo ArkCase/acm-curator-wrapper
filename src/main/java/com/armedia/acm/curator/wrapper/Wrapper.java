@@ -42,10 +42,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.armedia.acm.curator.Session;
+import com.armedia.acm.curator.recipe.InitializationGate;
+import com.armedia.acm.curator.recipe.InitializationGate.FunctionalInitializer;
+import com.armedia.acm.curator.recipe.InitializationGate.Initializer;
 import com.armedia.acm.curator.recipe.Leader;
 import com.armedia.acm.curator.recipe.Mutex;
 import com.armedia.acm.curator.tools.CheckedSupplier;
 import com.armedia.acm.curator.tools.Tools;
+import com.armedia.acm.curator.tools.Version;
 import com.armedia.acm.curator.wrapper.conf.ExecCfg;
 import com.armedia.acm.curator.wrapper.conf.OperationMode;
 import com.armedia.acm.curator.wrapper.conf.RedirectCfg;
@@ -63,36 +67,6 @@ public class Wrapper
     {
         this.session = Objects.requireNonNull(session, "Must provide a non-null Session supplier");
         this.cfg = Tools.ifNull(cfg, WrapperCfg::new);
-    }
-
-    private AutoCloseable createWrapper(Session session) throws Exception
-    {
-        switch (this.cfg.getMode())
-        {
-        case leader:
-            this.log.info("Creating a leadership selector");
-            Leader leader = new Leader(session, this.cfg.getName());
-            if (this.cfg.getTimeout() > 0)
-            {
-                return leader.awaitLeadership(Duration.ofMillis(this.cfg.getTimeout()));
-            }
-            return leader.awaitLeadership() //
-            ;
-
-        case mutex:
-            this.log.info("Creating a mutex lock");
-            Mutex mutex = new Mutex(session, this.cfg.getName());
-            if (this.cfg.getTimeout() > 0)
-            {
-                return mutex.acquire(Duration.ofMillis(this.cfg.getTimeout()));
-            }
-            return mutex.acquire() //
-            ;
-
-        default:
-            this.log.info("No-op wrapper created");
-            return Tools::noop;
-        }
     }
 
     private void redirect(boolean from, String path, Consumer<Redirect> tgt)
@@ -120,7 +94,6 @@ public class Wrapper
         {
             return;
         }
-
         redirect(true, cfg.getStdin(), pb::redirectInput);
         redirect(false, cfg.getStdout(), pb::redirectOutput);
         redirect(false, cfg.getStderr(), pb::redirectError);
@@ -213,15 +186,8 @@ public class Wrapper
         }
     }
 
-    public int run() throws Exception
+    private int runWrappedCommand(ExecCfg cmd) throws Exception
     {
-        ExecCfg cmd = this.cfg.getExec();
-        if (this.cfg.getMode() == OperationMode.direct)
-        {
-            // We're not working any of our magic... just execute the wrapped command
-            return run(cmd);
-        }
-
         try (Session session = this.session.get())
         {
             if (!session.isEnabled())
@@ -233,16 +199,74 @@ public class Wrapper
 
             // This is the new, "clusterable" code path
             this.log.info("Running in clustered mode");
-            try (AutoCloseable c = createWrapper(session))
+
+            final Duration maxWait = (this.cfg.getTimeout() > 0) //
+                    ? Duration.ofMillis(this.cfg.getTimeout()) //
+                    : null //
+            ;
+
+            switch (this.cfg.getMode())
             {
+            case leader:
+                this.log.info("Creating a leadership selector");
+                Leader leader = new Leader(session, this.cfg.getName());
+                try (AutoCloseable l = leader.awaitLeadership(maxWait))
+                {
+                    return run(cmd);
+                }
+
+            case mutex:
+                this.log.info("Creating a mutex lock");
+                Mutex mutex = new Mutex(session, this.cfg.getName());
+                try (AutoCloseable m = mutex.acquire(maxWait))
+                {
+                    return run(cmd);
+                }
+
+            case init:
+                this.log.info("Creating an initializer gate");
+                InitializationGate init = new InitializationGate(session, this.cfg.getName());
+                Object o = this.cfg.getParams().get("version");
+                Version version = (o != null ? Version.parse(o.toString()) : null);
+                Initializer initializer = new FunctionalInitializer(version, (v, e) -> {
+                    int rc = run(cmd);
+                    if (rc == 0)
+                    {
+                        return null;
+                    }
+
+                    // The command failed, so communicate it upwards...
+                    throw new Exception(String.format("The command exited with a non-0 status: %d", rc));
+                });
+                init.initialize(initializer, maxWait);
+                return 0;
+
+            default:
+                this.log.info("No algorithm for wrapper type {}", this.cfg.getMode());
                 return run(cmd);
             }
-            catch (Exception e)
-            {
-                this.log.error("Exception caught during wrapping or command execution", e);
-                return 1;
-            }
         }
+    }
+
+    public int run() throws Exception
+    {
+        ExecCfg cmd = this.cfg.getExec();
+        if (this.cfg.getMode() == OperationMode.direct)
+        {
+            // We're not working any of our magic... just execute the wrapped command
+            return run(cmd);
+        }
+
+        try
+        {
+            return runWrappedCommand(cmd);
+        }
+        catch (Exception e)
+        {
+            this.log.error("Exception caught during wrapping or command execution", e);
+            return 1;
+        }
+
     }
 
 }
