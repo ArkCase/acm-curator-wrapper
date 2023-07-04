@@ -54,7 +54,7 @@ public class Leader extends Recipe
     private final String leaderName;
     private final String leaderPath;
 
-    private Leader(Session session, String name)
+    protected Leader(Session session, String name)
     {
         super(session);
         String baseLeaderPath = String.format("%s/leader", session.getBasePath());
@@ -73,11 +73,6 @@ public class Leader extends Recipe
     public String getLeaderPath()
     {
         return this.leaderPath;
-    }
-
-    public Session getConnection()
-    {
-        return this.session;
     }
 
     private AutoCloseable execute(BooleanSupplier job, Duration maxWait) throws InterruptedException, TimeoutException

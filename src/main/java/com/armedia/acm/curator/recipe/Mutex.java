@@ -43,7 +43,7 @@ public class Mutex extends Recipe
     private final String mutexName;
     private final String mutexPath;
 
-    private Mutex(Session session, String name)
+    protected Mutex(Session session, String name)
     {
         super(session);
         String baseMutexPath = String.format("%s/mutex", session.getBasePath());
@@ -62,11 +62,6 @@ public class Mutex extends Recipe
     public String getMutexPath()
     {
         return this.mutexPath;
-    }
-
-    public Session getConnection()
-    {
-        return this.session;
     }
 
     public AutoCloseable acquire() throws Exception
