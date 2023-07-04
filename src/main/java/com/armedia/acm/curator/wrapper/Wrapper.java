@@ -84,10 +84,7 @@ public class Wrapper
 
         case mutex:
             this.log.info("Creating a mutex lock");
-            Mutex mutex = new Mutex.Builder() //
-                    .name(this.cfg.getName()) //
-                    .build(session) //
-            ;
+            Mutex mutex = new Mutex(session, this.cfg.getName());
             if (this.cfg.getTimeout() > 0)
             {
                 return mutex.acquire(Duration.ofMillis(this.cfg.getTimeout()));

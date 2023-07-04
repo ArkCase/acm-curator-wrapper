@@ -44,7 +44,12 @@ public class Mutex extends Recipe
     private final String name;
     private final String path;
 
-    protected Mutex(Session session, String name)
+    public Mutex(Session session)
+    {
+        this(session, null);
+    }
+
+    public Mutex(Session session, String name)
     {
         super(session);
         String root = String.format("%s/mutex", session.getBasePath());
@@ -91,26 +96,5 @@ public class Mutex extends Recipe
             this.log.trace("Releasing the lock at [{}]", this.path);
             lock.release();
         };
-    }
-
-    public static class Builder
-    {
-        private String name;
-
-        public String name()
-        {
-            return this.name;
-        }
-
-        public Builder name(String name)
-        {
-            this.name = name;
-            return this;
-        }
-
-        public Mutex build(Session session)
-        {
-            return new Mutex(session, this.name);
-        }
     }
 }
