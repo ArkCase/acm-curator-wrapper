@@ -71,10 +71,7 @@ public class Wrapper
         {
         case leader:
             this.log.info("Creating a leadership selector");
-            Leader leader = new Leader.Builder() //
-                    .name(this.cfg.getName()) //
-                    .build(session) //
-            ;
+            Leader leader = new Leader(session, this.cfg.getName());
             if (this.cfg.getTimeout() > 0)
             {
                 return leader.awaitLeadership(Duration.ofMillis(this.cfg.getTimeout()));

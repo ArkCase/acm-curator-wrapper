@@ -50,35 +50,40 @@ public class Leader extends Recipe
 {
     private static final AtomicInteger selectorCounter = new AtomicInteger(0);
     private static final Duration WAIT_FOREVER = Duration.ZERO;
-    private final Logger log = LoggerFactory.getLogger(getClass());
-    private final String leaderName;
-    private final String leaderPath;
 
-    protected Leader(Session session, String name)
+    public static final String DEFAULT_NAME = "default";
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    private final String name;
+    private final String path;
+
+    public Leader(Session session)
+    {
+        this(session, null);
+    }
+
+    public Leader(Session session, String name)
     {
         super(session);
-        String baseLeaderPath = String.format("%s/leader", session.getBasePath());
-        this.leaderName = name;
-        this.leaderPath = (Tools.isEmpty(this.leaderName) //
-                ? baseLeaderPath //
-                : String.format("%s/%s", baseLeaderPath, this.leaderName) //
-        );
+        String root = String.format("%s/leader", session.getBasePath());
+        this.name = Tools.ifEmpty(name, Leader.DEFAULT_NAME);
+        this.path = String.format("%s/%s", root, this.name);
     }
 
-    public String getLeaderName()
+    public String getName()
     {
-        return this.leaderName;
+        return this.name;
     }
 
-    public String getLeaderPath()
+    public String getPath()
     {
-        return this.leaderPath;
+        return this.path;
     }
 
     private AutoCloseable execute(BooleanSupplier job, Duration maxWait) throws InterruptedException, TimeoutException
     {
         this.session.assertEnabled();
-        this.log.debug("Leadership node path: [{}]", this.leaderPath);
+        this.log.debug("Leadership node path: [{}]", this.path);
         if (maxWait == null)
         {
             maxWait = Leader.WAIT_FOREVER;
@@ -94,7 +99,7 @@ public class Leader extends Recipe
             {
                 try
                 {
-                    Leader.this.log.info("Leadership acquired on path [{}]  (# {})", Leader.this.leaderPath, selectorKey);
+                    Leader.this.log.info("Leadership acquired on path [{}]  (# {})", Leader.this.path, selectorKey);
                     awaitLeadership.await();
                     Leader.this.log.info("Signalled the start of the execution, awaiting completion (# {})", selectorKey);
                     awaitCompletion.await();
@@ -117,7 +122,7 @@ public class Leader extends Recipe
         };
 
         this.log.trace("Creating a new leadership selector");
-        final LeaderSelector selector = new LeaderSelector(this.session.getClient(), this.leaderPath, listener);
+        final LeaderSelector selector = new LeaderSelector(this.session.getClient(), this.path, listener);
         this.log.trace("Starting the leadership selector (# {})", selectorKey);
         if (job != null)
         {
@@ -343,26 +348,5 @@ public class Leader extends Recipe
     public AutoCloseable awaitLeadership(Duration maxWait) throws InterruptedException, TimeoutException
     {
         return execute(null, maxWait);
-    }
-
-    public static class Builder
-    {
-        private String name;
-
-        public String name()
-        {
-            return this.name;
-        }
-
-        public Builder name(String name)
-        {
-            this.name = name;
-            return this;
-        }
-
-        public Leader build(Session session)
-        {
-            return new Leader(session, this.name);
-        }
     }
 }
