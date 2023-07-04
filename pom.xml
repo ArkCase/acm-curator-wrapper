@@ -14,9 +14,9 @@
 	<inceptionYear>2023</inceptionYear>
 
 	<properties>
-		<revision>1.0.0</revision>
+		<revision>1.1.0</revision>
 		<maven.min-version>3.3.9</maven.min-version>
-		<java.version>11</java.version>
+		<java.version>1.8</java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<build.number>-SNAPSHOT-${scmBranch}-${buildNumber}</build.number>
@@ -25,7 +25,7 @@
 		<curator.version>5.5.0</curator.version>
 		<snakeyaml.version>1.14</snakeyaml.version>
 		<commons-cli.version>1.2</commons-cli.version>
-		<logback.version>1.4.8</logback.version>
+		<logback.version>1.3.8</logback.version>
 		<logback-colorizer.version>1.0.1</logback-colorizer.version>
 		<junit-jupiter.version>5.9.3</junit-jupiter.version>
 		<easymock.version>5.1.0</easymock.version>
