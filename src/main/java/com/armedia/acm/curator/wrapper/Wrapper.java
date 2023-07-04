@@ -106,7 +106,11 @@ public class Wrapper
         Redirect redirect = Redirect.INHERIT;
         if (Wrapper.NULL.equalsIgnoreCase(path))
         {
-            redirect = Redirect.DISCARD;
+            // Enable this when we move to Java 11
+            // redirect = Redirect.DISCARD;
+
+            // This only exists for Java 8
+            redirect = null;
         }
         else if (path != null)
         {
