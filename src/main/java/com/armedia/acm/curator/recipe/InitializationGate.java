@@ -34,6 +34,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Map;
 import java.util.Objects;
 
 import org.apache.zookeeper.KeeperException.NoNodeException;
@@ -61,21 +62,21 @@ public class InitializationGate extends Recipe
             return this.version;
         }
 
-        public abstract Serializable initialize(Version current, Serializable extraData) throws Exception;
+        public abstract Map<String, String> initialize(Version current, Map<String, String> extraData) throws Exception;
     }
 
     public static class FunctionalInitializer extends Initializer
     {
-        private final CheckedBiFunction<Version, Serializable, Serializable> initializer;
+        private final CheckedBiFunction<Version, Map<String, String>, Map<String, String>> initializer;
 
-        public FunctionalInitializer(Version version, CheckedBiFunction<Version, Serializable, Serializable> initializer)
+        public FunctionalInitializer(Version version, CheckedBiFunction<Version, Map<String, String>, Map<String, String>> initializer)
         {
             super(version);
             this.initializer = initializer;
         }
 
         @Override
-        public final Serializable initialize(Version current, Serializable extraData) throws Exception
+        public final Map<String, String> initialize(Version current, Map<String, String> extraData) throws Exception
         {
             return (this.initializer != null) //
                     ? this.initializer.applyChecked(current, extraData) //
@@ -93,7 +94,7 @@ public class InitializationGate extends Recipe
         private final Version version;
         private final Instant started;
         private final Duration duration;
-        private final Serializable extraData;
+        private final Map<String, String> extraData;
 
         private InitializationInfo(byte[] data)
         {
@@ -102,7 +103,9 @@ public class InitializationGate extends Recipe
                 this.version = Version.class.cast(in.readObject());
                 this.started = Instant.class.cast(in.readObject());
                 this.duration = Duration.class.cast(in.readObject());
-                this.extraData = Serializable.class.cast(in.readObject());
+                @SuppressWarnings("unchecked")
+                Map<String, String> extraData = (Map<String, String>) in.readObject();
+                this.extraData = extraData;
             }
             catch (IOException | ClassNotFoundException e)
             {
@@ -110,14 +113,14 @@ public class InitializationGate extends Recipe
             }
         }
 
-        private InitializationInfo(Version version, Instant started, Duration duration, Serializable extra)
+        private InitializationInfo(Version version, Instant started, Duration duration, Map<String, String> extraData)
         {
             this.version = version;
             if (version != null)
             {
                 this.started = started;
                 this.duration = duration;
-                this.extraData = extra;
+                this.extraData = extraData;
             }
             else
             {
@@ -242,7 +245,7 @@ public class InitializationGate extends Recipe
 
                     this.log.info("Starting the initialization");
                     final Instant start = Instant.now();
-                    Serializable extraData = initializer.initialize(existing.version, existing.extraData);
+                    Map<String, String> extraData = initializer.initialize(existing.version, existing.extraData);
 
                     // Mark the initialization as successful
                     final Duration duration = Duration.between(start, Instant.now());
@@ -268,7 +271,7 @@ public class InitializationGate extends Recipe
         }
     }
 
-    protected void setInitializationInfo(Version version, Instant start, Duration duration, Serializable extraData)
+    protected void setInitializationInfo(Version version, Instant start, Duration duration, Map<String, String> extraData)
             throws IOException, Exception
     {
         InitializationInfo info = new InitializationInfo(version, start, duration, extraData);
