@@ -38,69 +38,57 @@ import com.armedia.acm.curator.tools.Tools;
 
 public class Mutex extends Recipe
 {
+    public static final String DEFAULT_MUTEX = "default";
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final String mutexName;
-    private final String mutexPath;
+    private final String name;
+    private final String path;
 
     protected Mutex(Session session, String name)
     {
         super(session);
-        String baseMutexPath = String.format("%s/mutex", session.getBasePath());
-        this.mutexName = name;
-        this.mutexPath = (Tools.isEmpty(this.mutexName) //
-                ? baseMutexPath //
-                : String.format("%s/%s", baseMutexPath, this.mutexName) //
-        );
+        String root = String.format("%s/mutex", session.getBasePath());
+        this.name = Tools.ifEmpty(name, Mutex.DEFAULT_MUTEX);
+        this.path = String.format("%s/%s", root, this.name);
     }
 
-    public String getMutexName()
+    public String getName()
     {
-        return this.mutexName;
+        return this.name;
     }
 
     public String getMutexPath()
     {
-        return this.mutexPath;
+        return this.path;
     }
 
     public AutoCloseable acquire() throws Exception
     {
-        return acquire(null, null);
+        return acquire(null);
     }
 
     public AutoCloseable acquire(Duration maxWait) throws Exception
     {
-        return acquire(null, maxWait);
-    }
-
-    public AutoCloseable acquire(String mutexName) throws Exception
-    {
-        return acquire(mutexName, null);
-    }
-
-    public AutoCloseable acquire(String mutexName, Duration maxWait) throws Exception
-    {
         this.session.assertEnabled();
 
-        final InterProcessMutex lock = new InterProcessMutex(this.session.getClient(), this.mutexPath);
+        final InterProcessMutex lock = new InterProcessMutex(this.session.getClient(), this.path);
         if ((maxWait != null) && !maxWait.isNegative() && !maxWait.isZero())
         {
-            this.log.info("Acquiring the mutex at [{}] (maximum wait {})", this.mutexPath, maxWait);
+            this.log.info("Acquiring the mutex at [{}] (maximum wait {})", this.path, maxWait);
             if (!lock.acquire(maxWait.toMillis(), TimeUnit.MILLISECONDS))
             {
-                throw new IllegalStateException(String.format("Timed out acquiring the lock [%s] (timeout = %s)", mutexName, maxWait));
+                throw new IllegalStateException(String.format("Timed out acquiring the lock [%s] (timeout = %s)", this.name, maxWait));
             }
         }
         else
         {
-            this.log.info("Acquiring the mutex at [{}]", this.mutexPath);
+            this.log.info("Acquiring the mutex at [{}]", this.path);
             lock.acquire();
         }
 
-        this.log.trace("Acquired the lock at [{}]", this.mutexPath);
+        this.log.trace("Acquired the lock at [{}]", this.path);
         return () -> {
-            this.log.trace("Releasing the lock at [{}]", this.mutexPath);
+            this.log.trace("Releasing the lock at [{}]", this.path);
             lock.release();
         };
     }
