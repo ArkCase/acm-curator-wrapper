@@ -38,7 +38,7 @@ import com.armedia.acm.curator.tools.Tools;
 
 public class Mutex extends Recipe
 {
-    public static final String DEFAULT_MUTEX = "default";
+    public static final String DEFAULT_NAME = "default";
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final String name;
@@ -53,7 +53,7 @@ public class Mutex extends Recipe
     {
         super(session);
         String root = String.format("%s/mutex", session.getBasePath());
-        this.name = Tools.ifEmpty(name, Mutex.DEFAULT_MUTEX);
+        this.name = Tools.ifEmpty(name, Mutex.DEFAULT_NAME);
         this.path = String.format("%s/%s", root, this.name);
     }
 
