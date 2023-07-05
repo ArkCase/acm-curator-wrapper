@@ -251,6 +251,7 @@ public class InitializationGate extends Recipe
                     final Duration duration = Duration.between(start, Instant.now());
                     InitializationGate.this.log.info("Initialization completed ({}), storing the persistent marker", duration);
                     setInitializationInfo(incoming, start, duration, extraData);
+                    return true;
                 }
             }
         }
