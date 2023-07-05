@@ -43,8 +43,10 @@ import org.apache.commons.cli.Options;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.representer.Representer;
 
+import com.armedia.acm.curator.tools.SysPropEnvScalarConstructor;
 import com.armedia.acm.curator.tools.Tools;
 import com.armedia.acm.curator.wrapper.conf.SessionCfg;
 import com.armedia.acm.curator.wrapper.conf.WrapperCfg;
@@ -197,9 +199,10 @@ public class Main
                 Main.LOG.debug("Parsing the configuration YAML");
                 try (Reader r = cfgReader)
                 {
+                    final Constructor constructor = new SysPropEnvScalarConstructor();
                     Representer representer = new Representer();
                     representer.getPropertyUtils().setSkipMissingProperties(true);
-                    cfg = new Yaml(representer).loadAs(r, Cfg.class);
+                    cfg = new Yaml(constructor, representer).loadAs(r, Cfg.class);
                 }
                 Main.LOG.trace("Configuration parsed");
             }
