@@ -31,7 +31,7 @@ import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -48,7 +48,6 @@ import com.armedia.acm.curator.tools.Tools;
 
 public class Leader extends Recipe
 {
-    private static final AtomicInteger selectorCounter = new AtomicInteger(0);
     private static final Duration WAIT_FOREVER = Duration.ZERO;
 
     public static final String DEFAULT_NAME = "default";
@@ -56,6 +55,7 @@ public class Leader extends Recipe
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final String name;
     private final String path;
+    private final AtomicReference<Object> cleanupKey = new AtomicReference<>();
 
     public Leader(Session session)
     {
@@ -91,7 +91,6 @@ public class Leader extends Recipe
 
         final CyclicBarrier awaitLeadership = new CyclicBarrier(2);
         final CyclicBarrier awaitCompletion = new CyclicBarrier(2);
-        final int selectorKey = Leader.selectorCounter.getAndIncrement();
         final LeaderSelectorListener listener = new LeaderSelectorListenerAdapter()
         {
             @Override
@@ -99,40 +98,40 @@ public class Leader extends Recipe
             {
                 try
                 {
-                    Leader.this.log.info("Leadership acquired on path [{}]  (# {})", Leader.this.path, selectorKey);
+                    Leader.this.log.info("Leadership acquired on path [{}]  (# {})", Leader.this.path, Leader.this.cleanupKey.get());
                     awaitLeadership.await();
-                    Leader.this.log.info("Signalled the start of the execution, awaiting completion (# {})", selectorKey);
+                    Leader.this.log.info("Signalled the start of the execution, awaiting completion (# {})", Leader.this.cleanupKey.get());
                     awaitCompletion.await();
-                    Leader.this.log.info("Execution completed; the barrier returned normally (# {})", selectorKey);
+                    Leader.this.log.info("Execution completed; the barrier returned normally (# {})", Leader.this.cleanupKey.get());
                 }
                 catch (BrokenBarrierException e)
                 {
-                    Leader.this.log.error("Broken barrier during leadership processing (# {})", selectorKey, e);
+                    Leader.this.log.error("Broken barrier during leadership processing (# {})", Leader.this.cleanupKey.get(), e);
                 }
                 catch (InterruptedException e)
                 {
                     Thread.interrupted();
-                    Leader.this.log.error("Interrupted waiting for execution to complete (# {})", selectorKey);
+                    Leader.this.log.error("Interrupted waiting for execution to complete (# {})", Leader.this.cleanupKey.get());
                 }
                 finally
                 {
-                    Leader.this.log.trace("Relinquishing leadership (# {})", selectorKey);
+                    Leader.this.log.trace("Relinquishing leadership (# {})", Leader.this.cleanupKey.get());
                 }
             }
         };
 
         this.log.trace("Creating a new leadership selector");
         final LeaderSelector selector = new LeaderSelector(this.session.getClient(), this.path, listener);
-        this.log.trace("Starting the leadership selector (# {})", selectorKey);
+        this.log.trace("Starting the leadership selector (# {})", this.cleanupKey);
         if (job != null)
         {
             selector.autoRequeue();
         }
         selector.start();
-        this.session.addSelector(selectorKey, selector);
+        this.cleanupKey.set(this.session.addCleanup(selector));
 
         AutoCloseable close = () -> {
-            this.log.info("Processing completed, relinquishing leadership (selector # {})", selectorKey);
+            this.log.info("Processing completed, relinquishing leadership (selector # {})", this.cleanupKey.get());
             awaitCompletion.await();
             try
             {
@@ -140,18 +139,18 @@ public class Leader extends Recipe
             }
             catch (Exception e)
             {
-                this.log.warn("Exception caught closing down leadership selector # {}", selectorKey, e);
+                this.log.warn("Exception caught closing down leadership selector # {}", this.cleanupKey.get(), e);
             }
             finally
             {
-                this.session.removeSelector(selectorKey);
+                this.session.removeCleanup(this.cleanupKey.getAndSet(null));
             }
         };
 
         // We will block in this await() invocation until leadership is acquired.
         while (true)
         {
-            this.log.info("Waiting for leadership to be attained (# {})", selectorKey);
+            this.log.info("Waiting for leadership to be attained (# {})", this.cleanupKey.get());
             try
             {
                 if (!maxWait.isNegative() && !maxWait.isZero())
@@ -165,17 +164,17 @@ public class Leader extends Recipe
             }
             catch (final InterruptedException e)
             {
-                this.log.warn("Leadership wait interrupted (# {})!", selectorKey, e);
+                this.log.warn("Leadership wait interrupted (# {})!", this.cleanupKey.get(), e);
                 Thread.interrupted();
                 throw e;
             }
             catch (BrokenBarrierException e)
             {
-                throw new RuntimeException(String.format("Barrier broken while awaiting leadership (# %d)", selectorKey), e);
+                throw new RuntimeException(String.format("Barrier broken while awaiting leadership (# %s)", this.cleanupKey.get()), e);
             }
             finally
             {
-                this.log.trace("The leadership wait is finished (# {})", selectorKey);
+                this.log.trace("The leadership wait is finished (# {})", this.cleanupKey.get());
             }
 
             if (job == null)
@@ -187,20 +186,21 @@ public class Leader extends Recipe
             try
             {
                 ret = job.getAsBoolean();
-                this.log.info("Processing completed, relinquishing leadership (selector # {})", selectorKey);
+                this.log.info("Processing completed, relinquishing leadership (selector # {})", this.cleanupKey.get());
                 try
                 {
                     awaitCompletion.await();
                 }
                 catch (final InterruptedException e)
                 {
-                    this.log.warn("Interrupted while relinquishing leadership (# {})!", selectorKey, e);
+                    this.log.warn("Interrupted while relinquishing leadership (# {})!", this.cleanupKey.get(), e);
                     Thread.interrupted();
                     throw e;
                 }
                 catch (BrokenBarrierException e)
                 {
-                    throw new RuntimeException(String.format("Barrier broken while relinquishing leadership (# %d)", selectorKey), e);
+                    throw new RuntimeException(
+                            String.format("Barrier broken while relinquishing leadership (# %s)", this.cleanupKey.get()), e);
                 }
             }
             finally
