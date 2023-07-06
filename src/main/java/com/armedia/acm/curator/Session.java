@@ -26,7 +26,6 @@
  */
 package com.armedia.acm.curator;
 
-import java.io.Closeable;
 import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
@@ -99,8 +98,8 @@ public class Session implements AutoCloseable
     private CuratorFramework client = null;
     private Thread cleanup = null;
     private final String basePath;
-    private final AtomicInteger selectorKeys = new AtomicInteger();
-    private final Map<Integer, Closeable> selectors = Collections.synchronizedMap(new TreeMap<>());
+    private final AtomicInteger cleanupKeys = new AtomicInteger();
+    private final Map<Integer, AutoCloseable> cleanups = Collections.synchronizedMap(new TreeMap<>());
 
     private Session(Builder builder)
             throws InterruptedException
@@ -172,12 +171,12 @@ public class Session implements AutoCloseable
         return (this.client != null);
     }
 
-    public Object addCleanup(Closeable closeable)
+    public Object addCleanup(AutoCloseable closeable)
     {
         if ((closeable != null) && isEnabled())
         {
-            int key = this.selectorKeys.getAndIncrement();
-            this.selectors.put(key, closeable);
+            int key = this.cleanupKeys.getAndIncrement();
+            this.cleanups.put(key, closeable);
             return key;
         }
         else
@@ -186,17 +185,17 @@ public class Session implements AutoCloseable
         }
     }
 
-    public Closeable removeCleanup(Object key)
+    public AutoCloseable removeCleanup(Object key)
     {
-        return this.selectors.remove(key);
+        return this.cleanups.remove(key);
     }
 
     private synchronized void cleanup()
     {
         // Always unlock in reverse order to acquisition...
-        for (Object k : new TreeSet<>(this.selectors.keySet()).descendingSet())
+        for (Object k : new TreeSet<>(this.cleanups.keySet()).descendingSet())
         {
-            Closeable c = this.selectors.get(k);
+            AutoCloseable c = this.cleanups.get(k);
             this.log.warn("Emergency cleanup: closing out leadership selector # {}", k);
             try
             {
