@@ -39,7 +39,6 @@ public class SessionTest
                 SessionTest.SERVER = null;
             }
         }
-
     }
 
     @Test
