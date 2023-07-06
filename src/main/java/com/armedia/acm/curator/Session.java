@@ -26,15 +26,17 @@
  */
 package com.armedia.acm.curator;
 
+import java.io.Closeable;
 import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
-import org.apache.curator.framework.recipes.leader.LeaderSelector;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.retry.RetryForever;
 import org.slf4j.Logger;
@@ -50,13 +52,18 @@ public class Session implements AutoCloseable
     public static final int MIN_CONNECTION_TIMEOUT = 100;
     public static final int DEFAULT_CONNECTION_TIMEOUT = 5000;
 
-    private static final int DEFAULT_RETRY_DELAY = 1000;
-    private static final int MIN_RETRY_DELAY = 100;
-    private static final int MAX_RETRY_DELAY = 60000;
+    public static final int DEFAULT_RETRY_COUNT = 0;
+    public static final int MIN_RETRY_COUNT = 0;
 
-    private static final int DEFAULT_RETRY_COUNT = 0;
+    public static final int DEFAULT_RETRY_DELAY = 1000;
+    public static final int MIN_RETRY_DELAY = 100;
+    public static final int MAX_RETRY_DELAY = 60000;
 
-    private static final String ROOT_PATH = "/arkcase";
+    public static final String DEFAULT_BASE_PATH = "/arkcase";
+
+    public static final boolean DEFAULT_WAIT_FOR_CONNECTION = true;
+
+    protected static final String NULL_CLEANUP_KEY = "<n/a>";
 
     private static int sanitizeValue(int value, int def, int min)
     {
@@ -92,7 +99,8 @@ public class Session implements AutoCloseable
     private CuratorFramework client = null;
     private Thread cleanup = null;
     private final String basePath;
-    private final Map<Integer, LeaderSelector> selectors = Collections.synchronizedMap(new TreeMap<>());
+    private final AtomicInteger selectorKeys = new AtomicInteger();
+    private final Map<Integer, Closeable> selectors = Collections.synchronizedMap(new TreeMap<>());
 
     private Session(Builder builder)
             throws InterruptedException
@@ -108,25 +116,21 @@ public class Session implements AutoCloseable
         int connectionTimeout = builder.connectionTimeout;
 
         RetryPolicy retryPolicy = null;
-        final int delay = Math.min(Session.MAX_RETRY_DELAY, builder.retryDelay);
         if (builder.retryCount <= 0)
         {
-            retryPolicy = new RetryForever(delay);
+            retryPolicy = new RetryForever(builder.retryDelay);
             this.log.debug("Clustering retry is infinite");
         }
         else
         {
             this.log.debug("Clustering retry count is {}", builder.retryCount);
-            retryPolicy = new ExponentialBackoffRetry(delay, builder.retryCount);
+            retryPolicy = new ExponentialBackoffRetry(builder.retryDelay, builder.retryCount);
         }
 
         this.log.debug("Clustering retry policy is {}, with a delay of {}", retryPolicy.getClass().getSimpleName(),
                 builder.retryDelay);
 
-        this.basePath = (Tools.isEmpty(builder.basePath) //
-                ? Session.ROOT_PATH //
-                : builder.basePath //
-        );
+        this.basePath = builder.basePath;
 
         this.log.info("ZooKeeper connection string: [{}]", builder.connect);
 
@@ -168,32 +172,39 @@ public class Session implements AutoCloseable
         return (this.client != null);
     }
 
-    public void addSelector(int key, LeaderSelector selector)
+    public Object addCleanup(Closeable closeable)
     {
-        if (selector != null)
+        if ((closeable != null) && isEnabled())
         {
-            this.selectors.put(key, selector);
+            int key = this.selectorKeys.getAndIncrement();
+            this.selectors.put(key, closeable);
+            return key;
+        }
+        else
+        {
+            return Session.NULL_CLEANUP_KEY;
         }
     }
 
-    public LeaderSelector removeSelector(int key)
+    public Closeable removeCleanup(Object key)
     {
         return this.selectors.remove(key);
     }
 
     private synchronized void cleanup()
     {
-        for (Integer i : this.selectors.keySet())
+        // Always unlock in reverse order to acquisition...
+        for (Object k : new TreeSet<>(this.selectors.keySet()).descendingSet())
         {
-            LeaderSelector l = this.selectors.get(i);
-            this.log.warn("Emergency cleanup: closing out leadership selector # {}", i);
+            Closeable c = this.selectors.get(k);
+            this.log.warn("Emergency cleanup: closing out leadership selector # {}", k);
             try
             {
-                l.close();
+                c.close();
             }
             catch (Exception e)
             {
-                this.log.warn("Exception caught during cleanup of leadership selector # {}", i, e);
+                this.log.warn("Exception caught during cleanup of leadership selector # {}", k, e);
             }
         }
 
@@ -236,12 +247,12 @@ public class Session implements AutoCloseable
         private String connect = null;
         private int sessionTimeout = Session.DEFAULT_SESSION_TIMEOUT;
         private int connectionTimeout = Session.DEFAULT_CONNECTION_TIMEOUT;
-        private String basePath = null;
+        private String basePath = Session.DEFAULT_BASE_PATH;
 
         private int retryDelay = Session.DEFAULT_RETRY_DELAY;
         private int retryCount = Session.DEFAULT_RETRY_COUNT;
 
-        private boolean waitForConnection = true;
+        private boolean waitForConnection = Session.DEFAULT_WAIT_FOR_CONNECTION;
 
         public String connect()
         {
@@ -272,7 +283,7 @@ public class Session implements AutoCloseable
 
         public Builder connectionTimeout(int connectionTimeout)
         {
-            this.connectionTimeout = Session.sanitizeSessionTimeout(connectionTimeout);
+            this.connectionTimeout = Session.sanitizeConnectionTimeout(connectionTimeout);
             return this;
         }
 
@@ -283,7 +294,10 @@ public class Session implements AutoCloseable
 
         public Builder basePath(String basePath)
         {
-            this.basePath = basePath;
+            this.basePath = Tools.isEmpty(basePath) //
+                    ? Session.DEFAULT_BASE_PATH //
+                    : basePath //
+            ;
             return this;
         }
 
@@ -294,7 +308,7 @@ public class Session implements AutoCloseable
 
         public Builder retryCount(int retryCount)
         {
-            this.retryCount = Session.sanitizeValue(retryCount, Session.DEFAULT_RETRY_COUNT, 0);
+            this.retryCount = Session.sanitizeValue(retryCount, Session.DEFAULT_RETRY_COUNT, Session.MIN_RETRY_COUNT);
             return this;
         }
 
@@ -305,7 +319,8 @@ public class Session implements AutoCloseable
 
         public Builder retryDelay(int retryDelay)
         {
-            this.retryDelay = Session.sanitizeValue(retryDelay, Session.DEFAULT_RETRY_DELAY, Session.MIN_RETRY_DELAY);
+            this.retryDelay = Math.min(Session.MAX_RETRY_DELAY,
+                    Session.sanitizeValue(retryDelay, Session.DEFAULT_RETRY_DELAY, Session.MIN_RETRY_DELAY));
             return this;
         }
 
@@ -314,9 +329,9 @@ public class Session implements AutoCloseable
             return this.waitForConnection;
         }
 
-        public Builder waitForConnection(boolean wait)
+        public Builder waitForConnection(Boolean wait)
         {
-            this.waitForConnection = wait;
+            this.waitForConnection = Tools.ifNull(wait, () -> Session.DEFAULT_WAIT_FOR_CONNECTION);
             return this;
         }
 
