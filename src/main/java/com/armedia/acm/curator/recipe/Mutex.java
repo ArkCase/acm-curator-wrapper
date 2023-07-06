@@ -28,6 +28,7 @@ package com.armedia.acm.curator.recipe;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 import org.slf4j.Logger;
@@ -43,6 +44,33 @@ public class Mutex extends Recipe
 
     private final String name;
     private final String path;
+
+    private class Closer implements AutoCloseable
+    {
+        final Object cleanupKey;
+        final InterProcessMutex lock;
+
+        private Closer(InterProcessMutex lock)
+        {
+            this.cleanupKey = Mutex.this.session.addCleanup(this);
+            Mutex.this.log.trace("Cleanup key is [{}]", this.cleanupKey);
+            this.lock = lock;
+        }
+
+        @Override
+        public void close() throws Exception
+        {
+            try
+            {
+                Mutex.this.log.trace("Releasing the lock at [{}]", Mutex.this.path);
+                this.lock.release();
+            }
+            finally
+            {
+                Mutex.this.session.removeCleanup(this.cleanupKey);
+            }
+        }
+    }
 
     public Mutex(Session session)
     {
@@ -82,7 +110,7 @@ public class Mutex extends Recipe
             this.log.info("Acquiring the mutex at [{}] (maximum wait {})", this.path, maxWait);
             if (!lock.acquire(maxWait.toMillis(), TimeUnit.MILLISECONDS))
             {
-                throw new IllegalStateException(String.format("Timed out acquiring the lock [%s] (timeout = %s)", this.name, maxWait));
+                throw new TimeoutException(String.format("Timed out acquiring the lock [%s] (timeout = %s)", this.name, maxWait));
             }
         }
         else
@@ -92,9 +120,6 @@ public class Mutex extends Recipe
         }
 
         this.log.trace("Acquired the lock at [{}]", this.path);
-        return () -> {
-            this.log.trace("Releasing the lock at [{}]", this.path);
-            lock.release();
-        };
+        return new Closer(lock);
     }
 }
