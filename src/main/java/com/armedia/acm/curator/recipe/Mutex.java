@@ -90,7 +90,7 @@ public class Mutex extends Recipe
         return this.name;
     }
 
-    public String getMutexPath()
+    public String getPath()
     {
         return this.path;
     }

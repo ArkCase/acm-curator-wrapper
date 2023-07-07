@@ -103,7 +103,7 @@ public class MutexTest
     }
 
     @Test
-    public void testGetMutexPath() throws Exception
+    public void testGetPath() throws Exception
     {
         try (Session session = new Session.Builder().build())
         {
@@ -115,7 +115,7 @@ public class MutexTest
             }
 
             Mutex m = new Mutex(session);
-            Assertions.assertEquals(String.format("%s/mutex/%s", session.getBasePath(), Mutex.DEFAULT_NAME), m.getMutexPath());
+            Assertions.assertEquals(String.format("%s/mutex/%s", session.getBasePath(), Mutex.DEFAULT_NAME), m.getPath());
         }
     }
 
