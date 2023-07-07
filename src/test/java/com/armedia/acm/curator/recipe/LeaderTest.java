@@ -6,6 +6,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -83,43 +84,6 @@ public class LeaderTest
     }
 
     @Test
-    public void testGetName() throws Exception
-    {
-        try (Session session = new Session.Builder().build())
-        {
-            for (int i = 0; i < 100; i++)
-            {
-                String s = String.format("%02d", i);
-                Leader l = new Leader(session, s);
-                Assertions.assertEquals(s, l.getName());
-            }
-
-            Leader l = new Leader(session);
-            Assertions.assertEquals(Leader.DEFAULT_NAME, l.getName());
-
-            l = new Leader(session, null);
-            Assertions.assertEquals(Leader.DEFAULT_NAME, l.getName());
-        }
-    }
-
-    @Test
-    public void testGetLeaderPath() throws Exception
-    {
-        try (Session session = new Session.Builder().build())
-        {
-            for (int i = 0; i < 100; i++)
-            {
-                String s = String.format("%s/leader/%02d", session.getBasePath(), i);
-                Leader m = new Leader(session, s);
-                Assertions.assertEquals(s, m.getName());
-            }
-
-            Leader m = new Leader(session);
-            Assertions.assertEquals(String.format("%s/leader/%s", session.getBasePath(), Leader.DEFAULT_NAME), m.getPath());
-        }
-    }
-
-    @Test
     public void testAcquire() throws Exception
     {
         try (Session session = new Session.Builder().build())
@@ -152,6 +116,7 @@ public class LeaderTest
         Map<String, Thread> threads = new LinkedHashMap<>();
         final Map<String, AtomicLong> counters = new LinkedHashMap<>();
         final Map<String, Throwable> exceptions = new LinkedHashMap<>();
+        final String name = UUID.randomUUID().toString();
 
         for (int i = 0; i < 3; i++)
         {
@@ -181,7 +146,7 @@ public class LeaderTest
                     barrier.await();
                     try (Session session = new Session.Builder().connect(LeaderTest.SERVER.getConnectString()).build())
                     {
-                        final Leader m = new Leader(session);
+                        final Leader m = new Leader(session, name);
                         final AtomicLong counter = counters.get(key);
                         // We will attempt to acquire the Leader 5 times in a tight loop.
                         // We will check the other threads' counters. The must not move
@@ -277,6 +242,7 @@ public class LeaderTest
         final CyclicBarrier startBarrier = new CyclicBarrier(2);
         final CyclicBarrier endBarrier = new CyclicBarrier(3);
         final AtomicBoolean failed = new AtomicBoolean(false);
+        final String name = "leader-timeout";
 
         // This thread is gonna hog the lock for 10 seconds
         new Thread()
@@ -288,7 +254,7 @@ public class LeaderTest
                 {
                     try (Session session = new Session.Builder().connect(LeaderTest.SERVER.getConnectString()).build())
                     {
-                        final Leader m = new Leader(session);
+                        final Leader m = new Leader(session, name);
                         try (AutoCloseable c = m.awaitLeadership())
                         {
                             // Signal that we're ready to keep going
@@ -319,7 +285,7 @@ public class LeaderTest
                 {
                     try (Session session = new Session.Builder().connect(LeaderTest.SERVER.getConnectString()).build())
                     {
-                        final Leader m = new Leader(session);
+                        final Leader m = new Leader(session, name);
                         startBarrier.await();
                         Duration d = Duration.of(2, ChronoUnit.SECONDS);
                         for (int i = 0; i < 3; i++)

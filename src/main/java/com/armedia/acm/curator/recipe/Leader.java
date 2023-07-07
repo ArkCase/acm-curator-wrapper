@@ -53,8 +53,6 @@ public class Leader extends Recipe
     public static final String DEFAULT_NAME = "default";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private final String name;
-    private final String path;
     private final AtomicReference<Object> cleanupKey = new AtomicReference<>();
 
     public Leader(Session session)
@@ -64,20 +62,7 @@ public class Leader extends Recipe
 
     public Leader(Session session, String name)
     {
-        super(session);
-        String root = String.format("%s/leader", session.getBasePath());
-        this.name = Tools.ifEmpty(name, Leader.DEFAULT_NAME);
-        this.path = String.format("%s/%s", root, this.name);
-    }
-
-    public String getName()
-    {
-        return this.name;
-    }
-
-    public String getPath()
-    {
-        return this.path;
+        super(session, name);
     }
 
     private AutoCloseable execute(BooleanSupplier job, Duration maxWait) throws InterruptedException, TimeoutException

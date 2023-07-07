@@ -43,7 +43,6 @@ import org.slf4j.LoggerFactory;
 
 import com.armedia.acm.curator.Session;
 import com.armedia.acm.curator.tools.CheckedBiFunction;
-import com.armedia.acm.curator.tools.Tools;
 import com.armedia.acm.curator.tools.Version;
 
 public class InitializationGate extends Recipe
@@ -189,31 +188,12 @@ public class InitializationGate extends Recipe
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final String name;
-    private final String path;
     private final Mutex mutex;
 
     public InitializationGate(Session session, String name)
     {
-        super(session);
-        if (Tools.isEmpty(name))
-        {
-            throw new IllegalArgumentException("The initialization gate must have a non-null name");
-        }
-        String root = String.format("%s/initialization", session.getBasePath());
-        this.name = name;
-        this.path = String.format("%s/%s", root, this.name);
+        super(session, name);
         this.mutex = new Mutex(session, String.format("init.%s", this.name));
-    }
-
-    public String getName()
-    {
-        return this.name;
-    }
-
-    public String getPath()
-    {
-        return this.path;
     }
 
     public Mutex getMutex()

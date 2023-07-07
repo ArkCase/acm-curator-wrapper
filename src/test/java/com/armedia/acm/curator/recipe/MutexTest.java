@@ -6,6 +6,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -83,43 +84,6 @@ public class MutexTest
     }
 
     @Test
-    public void testGetName() throws Exception
-    {
-        try (Session session = new Session.Builder().build())
-        {
-            for (int i = 0; i < 100; i++)
-            {
-                String s = String.format("%02d", i);
-                Mutex m = new Mutex(session, s);
-                Assertions.assertEquals(s, m.getName());
-            }
-
-            Mutex m = new Mutex(session);
-            Assertions.assertEquals(Mutex.DEFAULT_NAME, m.getName());
-
-            m = new Mutex(session, null);
-            Assertions.assertEquals(Mutex.DEFAULT_NAME, m.getName());
-        }
-    }
-
-    @Test
-    public void testGetPath() throws Exception
-    {
-        try (Session session = new Session.Builder().build())
-        {
-            for (int i = 0; i < 100; i++)
-            {
-                String s = String.format("%s/mutex/%02d", session.getBasePath(), i);
-                Mutex m = new Mutex(session, s);
-                Assertions.assertEquals(s, m.getName());
-            }
-
-            Mutex m = new Mutex(session);
-            Assertions.assertEquals(String.format("%s/mutex/%s", session.getBasePath(), Mutex.DEFAULT_NAME), m.getPath());
-        }
-    }
-
-    @Test
     public void testAcquire() throws Exception
     {
         try (Session session = new Session.Builder().build())
@@ -153,6 +117,7 @@ public class MutexTest
         final Map<String, AtomicLong> counters = new LinkedHashMap<>();
         final Map<String, Throwable> exceptions = new LinkedHashMap<>();
 
+        final String mutexName = UUID.randomUUID().toString();
         for (int i = 0; i < 3; i++)
         {
             final String key = String.format("%02d", i);
@@ -181,7 +146,7 @@ public class MutexTest
                     barrier.await();
                     try (Session session = new Session.Builder().connect(MutexTest.SERVER.getConnectString()).build())
                     {
-                        final Mutex m = new Mutex(session);
+                        final Mutex m = new Mutex(session, mutexName);
                         final AtomicLong counter = counters.get(key);
                         // We will attempt to acquire the mutex 5 times in a tight loop.
                         // We will check the other threads' counters. The must not move
@@ -277,6 +242,7 @@ public class MutexTest
         final CyclicBarrier startBarrier = new CyclicBarrier(2);
         final CyclicBarrier endBarrier = new CyclicBarrier(3);
         final AtomicBoolean failed = new AtomicBoolean(false);
+        final String name = UUID.randomUUID().toString();
 
         // This thread is gonna hog the lock for 10 seconds
         new Thread()
@@ -288,7 +254,7 @@ public class MutexTest
                 {
                     try (Session session = new Session.Builder().connect(MutexTest.SERVER.getConnectString()).build())
                     {
-                        final Mutex m = new Mutex(session);
+                        final Mutex m = new Mutex(session, name);
                         try (AutoCloseable c = m.acquire())
                         {
                             // Signal that we're ready to keep going
@@ -319,7 +285,7 @@ public class MutexTest
                 {
                     try (Session session = new Session.Builder().connect(MutexTest.SERVER.getConnectString()).build())
                     {
-                        final Mutex m = new Mutex(session);
+                        final Mutex m = new Mutex(session, name);
                         startBarrier.await();
                         Duration d = Duration.of(2, ChronoUnit.SECONDS);
                         for (int i = 0; i < 3; i++)

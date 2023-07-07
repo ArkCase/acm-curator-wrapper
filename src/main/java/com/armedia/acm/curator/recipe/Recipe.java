@@ -27,20 +27,44 @@
 package com.armedia.acm.curator.recipe;
 
 import java.util.Objects;
+import java.util.UUID;
 
 import com.armedia.acm.curator.Session;
+import com.armedia.acm.curator.tools.Tools;
 
 public abstract class Recipe
 {
     protected final Session session;
+    protected final String name;
+    protected final String path;
 
-    public Recipe(Session session)
+    protected Recipe(Session session, String name)
     {
         this.session = Objects.requireNonNull(session, "Must provide a non-null Session object");
+        String root = String.format("%s/%s", session.getBasePath(), getClass().getSimpleName().toLowerCase());
+        if (Tools.isEmpty(name))
+        {
+            this.name = UUID.randomUUID().toString();
+        }
+        else
+        {
+            this.name = name;
+        }
+        this.path = String.format("%s/%s", root, this.name);
     }
 
     public final Session getSession()
     {
         return this.session;
+    }
+
+    public final String getName()
+    {
+        return this.name;
+    }
+
+    public final String getPath()
+    {
+        return this.path;
     }
 }

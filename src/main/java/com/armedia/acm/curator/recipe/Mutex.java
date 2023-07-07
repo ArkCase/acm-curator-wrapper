@@ -35,15 +35,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.armedia.acm.curator.Session;
-import com.armedia.acm.curator.tools.Tools;
 
 public class Mutex extends Recipe
 {
     public static final String DEFAULT_NAME = "default";
     private final Logger log = LoggerFactory.getLogger(getClass());
-
-    private final String name;
-    private final String path;
 
     private class Closer implements AutoCloseable
     {
@@ -79,20 +75,7 @@ public class Mutex extends Recipe
 
     public Mutex(Session session, String name)
     {
-        super(session);
-        String root = String.format("%s/mutex", session.getBasePath());
-        this.name = Tools.ifEmpty(name, Mutex.DEFAULT_NAME);
-        this.path = String.format("%s/%s", root, this.name);
-    }
-
-    public String getName()
-    {
-        return this.name;
-    }
-
-    public String getPath()
-    {
-        return this.path;
+        super(session, name);
     }
 
     public AutoCloseable acquire() throws Exception

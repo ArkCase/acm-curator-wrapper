@@ -37,7 +37,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.armedia.acm.curator.Session;
-import com.armedia.acm.curator.tools.Tools;
 
 public class ReadWriteLock extends Recipe
 {
@@ -60,7 +59,7 @@ public class ReadWriteLock extends Recipe
                 ReadWriteLock.this.log.info("Acquiring the read lock at [{}] (maximum wait {})", ReadWriteLock.this.path, maxWait);
                 if (!this.lock.acquire(maxWait.toMillis(), TimeUnit.MILLISECONDS))
                 {
-                    throw new IllegalStateException(
+                    throw new TimeoutException(
                             String.format("Timed out acquiring the read lock [%s] (timeout = %s)", ReadWriteLock.this.name, maxWait));
                 }
             }
@@ -145,9 +144,6 @@ public class ReadWriteLock extends Recipe
         }
     }
 
-    private final String name;
-    private final String path;
-
     public ReadWriteLock(Session session)
     {
         this(session, null);
@@ -155,20 +151,7 @@ public class ReadWriteLock extends Recipe
 
     public ReadWriteLock(Session session, String name)
     {
-        super(session);
-        String root = String.format("%s/readwrite", session.getBasePath());
-        this.name = Tools.ifEmpty(name, ReadWriteLock.DEFAULT_NAME);
-        this.path = String.format("%s/%s", root, this.name);
-    }
-
-    public String getName()
-    {
-        return this.name;
-    }
-
-    public String getPath()
-    {
-        return this.path;
+        super(session, name);
     }
 
     public Read read() throws Exception
