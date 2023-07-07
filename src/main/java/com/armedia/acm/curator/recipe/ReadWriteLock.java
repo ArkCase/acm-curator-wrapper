@@ -28,6 +28,7 @@ package com.armedia.acm.curator.recipe;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.curator.framework.recipes.locks.InterProcessReadWriteLock;
 import org.apache.curator.framework.recipes.locks.InterProcessReadWriteLock.ReadLock;
@@ -118,7 +119,7 @@ public class ReadWriteLock extends Recipe
                 ReadWriteLock.this.log.info("Acquiring the write lock at [{}] (maximum wait {})", ReadWriteLock.this.path, maxWait);
                 if (!this.lock.acquire(maxWait.toMillis(), TimeUnit.MILLISECONDS))
                 {
-                    throw new IllegalStateException(
+                    throw new TimeoutException(
                             String.format("Timed out acquiring the write lock [%s] (timeout = %s)", ReadWriteLock.this.name, maxWait));
                 }
             }
