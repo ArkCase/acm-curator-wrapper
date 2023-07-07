@@ -89,8 +89,8 @@ public class LeaderTest
         try (Session session = new Session.Builder().build())
         {
             Assertions.assertFalse(session.isEnabled());
-            Leader m = new Leader(session);
-            try (AutoCloseable c = m.awaitLeadership())
+            Leader l = new Leader(session);
+            try (AutoCloseable c = l.awaitLeadership())
             {
                 Assertions.fail("Did not fail with a disabled session");
             }
@@ -104,8 +104,8 @@ public class LeaderTest
         try (Session session = new Session.Builder().connect(LeaderTest.SERVER.getConnectString()).build())
         {
             Assertions.assertTrue(session.isEnabled());
-            Leader m = new Leader(session);
-            try (AutoCloseable c = m.awaitLeadership())
+            Leader l = new Leader(session);
+            try (AutoCloseable c = l.awaitLeadership())
             {
                 // Lock was acquired properly ...
             }
@@ -146,7 +146,7 @@ public class LeaderTest
                     barrier.await();
                     try (Session session = new Session.Builder().connect(LeaderTest.SERVER.getConnectString()).build())
                     {
-                        final Leader m = new Leader(session, name);
+                        final Leader l = new Leader(session, name);
                         final AtomicLong counter = counters.get(key);
                         // We will attempt to acquire the Leader 5 times in a tight loop.
                         // We will check the other threads' counters. The must not move
@@ -155,7 +155,7 @@ public class LeaderTest
                         // have a chance to run
                         for (int i = 0; i < 5; i++)
                         {
-                            try (AutoCloseable c = m.awaitLeadership())
+                            try (AutoCloseable c = l.awaitLeadership())
                             {
                                 Map<String, Long> startCounters = getCounters();
                                 // Lock was acquired properly ... what are the other counters at?
@@ -216,8 +216,8 @@ public class LeaderTest
         try (Session session = new Session.Builder().build())
         {
             Assertions.assertFalse(session.isEnabled());
-            Leader m = new Leader(session);
-            try (AutoCloseable c = m.awaitLeadership(Duration.of(10, ChronoUnit.SECONDS)))
+            Leader l = new Leader(session);
+            try (AutoCloseable c = l.awaitLeadership(Duration.of(10, ChronoUnit.SECONDS)))
             {
                 Assertions.fail("Did not fail with a disabled session");
             }
@@ -231,8 +231,8 @@ public class LeaderTest
         try (Session session = new Session.Builder().connect(LeaderTest.SERVER.getConnectString()).build())
         {
             Assertions.assertTrue(session.isEnabled());
-            Leader m = new Leader(session);
-            try (AutoCloseable c = m.awaitLeadership(Duration.of(10, ChronoUnit.SECONDS)))
+            Leader l = new Leader(session);
+            try (AutoCloseable c = l.awaitLeadership(Duration.of(10, ChronoUnit.SECONDS)))
             {
                 // Lock was acquired properly ...
             }
@@ -254,8 +254,8 @@ public class LeaderTest
                 {
                     try (Session session = new Session.Builder().connect(LeaderTest.SERVER.getConnectString()).build())
                     {
-                        final Leader m = new Leader(session, name);
-                        try (AutoCloseable c = m.awaitLeadership())
+                        final Leader l = new Leader(session, name);
+                        try (AutoCloseable c = l.awaitLeadership())
                         {
                             // Signal that we're ready to keep going
                             startBarrier.await();
@@ -285,13 +285,13 @@ public class LeaderTest
                 {
                     try (Session session = new Session.Builder().connect(LeaderTest.SERVER.getConnectString()).build())
                     {
-                        final Leader m = new Leader(session, name);
+                        final Leader l = new Leader(session, name);
                         startBarrier.await();
                         Duration d = Duration.of(2, ChronoUnit.SECONDS);
                         for (int i = 0; i < 3; i++)
                         {
                             Instant start = Instant.now();
-                            try (AutoCloseable c = m.awaitLeadership(d))
+                            try (AutoCloseable c = l.awaitLeadership(d))
                             {
                                 Assertions.fail("The beggar acquired a lock that isn't available");
                             }
