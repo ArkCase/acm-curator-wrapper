@@ -155,7 +155,7 @@ public class ReadWriteLock extends Recipe
     public ReadWriteLock(Session session, String name)
     {
         super(session);
-        String root = String.format("%s/mutex", session.getBasePath());
+        String root = String.format("%s/readwrite", session.getBasePath());
         this.name = Tools.ifEmpty(name, ReadWriteLock.DEFAULT_NAME);
         this.path = String.format("%s/%s", root, this.name);
     }
@@ -165,7 +165,7 @@ public class ReadWriteLock extends Recipe
         return this.name;
     }
 
-    public String getMutexPath()
+    public String getPath()
     {
         return this.path;
     }
