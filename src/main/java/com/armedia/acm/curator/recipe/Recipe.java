@@ -34,6 +34,16 @@ import com.armedia.acm.curator.tools.Tools;
 
 public abstract class Recipe
 {
+    private static String sanitize(String name)
+    {
+        name = name.trim();
+        if (Tools.isEmpty(name))
+        {
+            throw new IllegalArgumentException("Must provide a non-blank string (i.e. more than just spaces)");
+        }
+        return name;
+    }
+
     protected final Session session;
     protected final String name;
     protected final String path;
@@ -48,7 +58,7 @@ public abstract class Recipe
         }
         else
         {
-            this.name = name;
+            this.name = Recipe.sanitize(name);
         }
         this.path = String.format("%s/%s", root, this.name);
     }
