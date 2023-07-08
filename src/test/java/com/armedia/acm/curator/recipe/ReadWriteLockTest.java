@@ -534,4 +534,22 @@ public class ReadWriteLockTest
 
         Assertions.assertFalse(failed.get(), "An exception was raised by one of the threads");
     }
+
+    @Test
+    public void testUpgrade() throws Exception
+    {
+        // Simple happy path
+        try (Session session = new Session.Builder().connect(ReadWriteLockTest.SERVER.getConnectString()).build())
+        {
+            Assertions.assertTrue(session.isEnabled());
+            ReadWriteLock rw = new ReadWriteLock(session);
+            try (ReadWriteLock.Read r = rw.read(Duration.of(10, ChronoUnit.SECONDS)))
+            {
+                try (ReadWriteLock.Write w = r.upgrade(Duration.of(100, ChronoUnit.MILLIS)))
+                {
+                    // Lock was upgraded ...
+                }
+            }
+        }
+    }
 }
