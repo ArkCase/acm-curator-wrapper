@@ -8,7 +8,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CyclicBarrier;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -121,9 +120,9 @@ public class ReadWriteLockTest
 
         for (int i = 0; i < 3; i++)
         {
-            final String key = String.format("%02d", i);
+            final String key = String.format("writer-%02d", i);
             counters.put(key, new AtomicLong(0));
-            threads.put(key, new Thread()
+            threads.put(key, new Thread(key)
             {
 
                 private Map<String, Long> getCounters()
@@ -246,7 +245,7 @@ public class ReadWriteLockTest
         final String name = UUID.randomUUID().toString();
 
         // This thread is gonna hog the lock for 10 seconds
-        new Thread()
+        new Thread("hog")
         {
             @Override
             public void run()
@@ -277,7 +276,7 @@ public class ReadWriteLockTest
         startBarrier.await();
 
         // This thread is going to await the lock for at most 2 seconds (for a few times).
-        new Thread()
+        new Thread("beg")
         {
             @Override
             public void run()
@@ -356,15 +355,15 @@ public class ReadWriteLockTest
         }
 
         // Try multithreading to ensure we really are ReadWriteLocking
-        final CyclicBarrier barrier = new CyclicBarrier(4);
+        final CyclicBarrier barrier = new CyclicBarrier(5);
         Map<String, Thread> threads = new LinkedHashMap<>();
         final Map<String, Throwable> exceptions = new LinkedHashMap<>();
         final String name = UUID.randomUUID().toString();
 
         for (int i = 0; i < 3; i++)
         {
-            final String key = String.format("%02d", i);
-            threads.put(key, new Thread()
+            final String key = String.format("reader-%02d", i);
+            threads.put(key, new Thread(key)
             {
                 @Override
                 public void run()
@@ -375,16 +374,13 @@ public class ReadWriteLockTest
                         try (Session session = new Session.Builder().connect(ReadWriteLockTest.SERVER.getConnectString()).build())
                         {
                             final ReadWriteLock rw = new ReadWriteLock(session, name);
-                            // We will attempt to acquire the read lock 5 times in a tight loop.
-                            // We will check the other threads' counters. The must also move
-                            // while we do our thing. We add a little bit of a pause (20ms)
-                            // and a Thread.yield() in there to make sure the other threads
-                            // have a chance to run
                             for (int i = 0; i < 5; i++)
                             {
-                                try (AutoCloseable c = rw.read())
+                                try (AutoCloseable c = rw.read(Duration.of(1, ChronoUnit.SECONDS)))
                                 {
-                                    barrier.await(5, TimeUnit.SECONDS);
+                                    // We only hold the lock to sync with everyone else to ensure
+                                    // multiple threads/processes can grab the same read lock
+                                    barrier.await();
                                 }
                             }
                         }
@@ -397,6 +393,39 @@ public class ReadWriteLockTest
             });
         }
 
+        final String writer = "writer";
+        threads.put(writer, new Thread(writer)
+        {
+            @Override
+            public void run()
+            {
+                try
+                {
+                    barrier.await();
+                    try (Session session = new Session.Builder().connect(ReadWriteLockTest.SERVER.getConnectString()).build())
+                    {
+                        final ReadWriteLock rw = new ReadWriteLock(session, name);
+                        for (int i = 0; i < 3; i++)
+                        {
+                            try (AutoCloseable c = rw.write(Duration.of(1, ChronoUnit.SECONDS)))
+                            {
+                                throw new RuntimeException("Failed to block on write lock acquisition");
+                            }
+                            catch (TimeoutException e)
+                            {
+                                // All is well
+                            }
+                        }
+                    }
+                    barrier.await();
+                }
+                catch (Exception e)
+                {
+                    exceptions.put(writer, e);
+                }
+            }
+        });
+
         // Start the threads...
         for (Thread t : threads.values())
         {
@@ -406,7 +435,7 @@ public class ReadWriteLockTest
         barrier.await();
 
         // Now wait for them to acquire the lock
-        barrier.await(10, TimeUnit.SECONDS);
+        barrier.await();
 
         // Start them, and wait for them to complete
         if (!exceptions.isEmpty())
@@ -454,7 +483,7 @@ public class ReadWriteLockTest
         final String name = UUID.randomUUID().toString();
 
         // This thread is gonna hog the lock for 10 seconds
-        new Thread()
+        new Thread("hog")
         {
             @Override
             public void run()
@@ -485,7 +514,7 @@ public class ReadWriteLockTest
         startBarrier.await();
 
         // This thread is going to await the lock for at most 2 seconds (for a few times).
-        new Thread()
+        new Thread("beg")
         {
             @Override
             public void run()
