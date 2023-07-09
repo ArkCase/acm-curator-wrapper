@@ -32,7 +32,7 @@ import java.util.UUID;
 import com.armedia.acm.curator.Session;
 import com.armedia.acm.curator.tools.Tools;
 
-public abstract class Recipe
+public class Recipe
 {
     private static String sanitize(String name)
     {
@@ -47,6 +47,11 @@ public abstract class Recipe
     protected final Session session;
     protected final String name;
     protected final String path;
+
+    protected Recipe(Session session)
+    {
+        this(session, null);
+    }
 
     protected Recipe(Session session, String name)
     {

@@ -1,5 +1,7 @@
 package com.armedia.acm.curator.recipe;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Assertions;
@@ -15,6 +17,18 @@ public class RecipeTest
     {
         try
         {
+            new Recipe(null)
+            {
+            };
+            Assertions.fail("Did not fail with a null parameter");
+        }
+        catch (NullPointerException e)
+        {
+            // all is well
+        }
+
+        try
+        {
             new Recipe(null, null)
             {
             };
@@ -28,9 +42,8 @@ public class RecipeTest
         Session.Builder builder = new Session.Builder();
         try (Session session = builder.build())
         {
-            new Recipe(session, null)
-            {
-            };
+            new Recipe(session, null);
+            new Recipe(session);
         }
     }
 
@@ -40,9 +53,7 @@ public class RecipeTest
         Session.Builder builder = new Session.Builder();
         try (Session session = builder.build())
         {
-            Recipe r = new Recipe(session, null)
-            {
-            };
+            Recipe r = new Recipe(session, null);
             Assertions.assertSame(session, r.getSession());
         }
     }
@@ -56,16 +67,12 @@ public class RecipeTest
             for (int i = 0; i < 5; i++)
             {
                 String name = String.format("my-test-name-%02d", i);
-                Recipe r = new Recipe(session, name)
-                {
-                };
+                Recipe r = new Recipe(session, name);
                 Assertions.assertSame(session, r.getSession());
                 Assertions.assertEquals(name, r.getName());
             }
 
-            Recipe r = new Recipe(session, null)
-            {
-            };
+            Recipe r = new Recipe(session, null);
             Assertions.assertSame(session, r.getSession());
             String name = r.getName();
             Assertions.assertNotNull(UUID.fromString(name));
@@ -78,26 +85,41 @@ public class RecipeTest
         Session.Builder builder = new Session.Builder();
         try (Session session = builder.build())
         {
+            Set<String> oldPaths = new HashSet<>();
             for (int i = 0; i < 5; i++)
             {
-                String name = String.format("my-test-name-%02d", i);
+                final String name = String.format("my-test-name-%02d", i);
+                final String uuid = UUID.randomUUID().toString();
                 Recipe r = new Recipe(session, name)
                 {
+                    @Override
+                    public String toString()
+                    {
+                        return uuid;
+                    }
                 };
                 String path = String.format("%s/%s/%s", session.getBasePath(), r.getClass().getSimpleName().toLowerCase(), name);
                 Assertions.assertSame(session, r.getSession());
                 Assertions.assertEquals(name, r.getName());
                 Assertions.assertEquals(path, r.getPath());
+                Assertions.assertTrue(oldPaths.add(r.getPath()), "Duplicate path from simple class name: " + path);
             }
 
+            final String uuid = UUID.randomUUID().toString();
             Recipe r = new Recipe(session, null)
             {
+                @Override
+                public String toString()
+                {
+                    return uuid;
+                }
             };
             String name = r.getName();
             String path = String.format("%s/%s/%s", session.getBasePath(), r.getClass().getSimpleName().toLowerCase(), name);
             Assertions.assertSame(session, r.getSession());
             Assertions.assertEquals(name, r.getName());
             Assertions.assertEquals(path, r.getPath());
+            Assertions.assertTrue(oldPaths.add(r.getPath()), "Duplicate path from simple class name: " + path);
         }
     }
 }
