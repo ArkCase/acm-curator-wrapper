@@ -120,7 +120,7 @@ public class ReadWriteLockTest
 
         for (int i = 0; i < 3; i++)
         {
-            final String key = String.format("writer-%02d", i);
+            final String key = String.format("rw-writer-%02d", i);
             counters.put(key, new AtomicLong(0));
             threads.put(key, new Thread(key)
             {
@@ -245,7 +245,7 @@ public class ReadWriteLockTest
         final String name = UUID.randomUUID().toString();
 
         // This thread is gonna hog the lock for 10 seconds
-        new Thread("hog")
+        new Thread("rw-read-hog")
         {
             @Override
             public void run()
@@ -255,7 +255,7 @@ public class ReadWriteLockTest
                     try (Session session = new Session.Builder().connect(ReadWriteLockTest.SERVER.getConnectString()).build())
                     {
                         final ReadWriteLock rw = new ReadWriteLock(session, name);
-                        try (AutoCloseable c = rw.write())
+                        try (AutoCloseable c = rw.read())
                         {
                             // Signal that we're ready to keep going
                             startBarrier.await();
@@ -276,7 +276,7 @@ public class ReadWriteLockTest
         startBarrier.await();
 
         // This thread is going to await the lock for at most 2 seconds (for a few times).
-        new Thread("beg")
+        new Thread("rw-write-beg")
         {
             @Override
             public void run()
@@ -362,7 +362,7 @@ public class ReadWriteLockTest
 
         for (int i = 0; i < 3; i++)
         {
-            final String key = String.format("reader-%02d", i);
+            final String key = String.format("rw-reader-%02d", i);
             threads.put(key, new Thread(key)
             {
                 @Override
@@ -393,7 +393,7 @@ public class ReadWriteLockTest
             });
         }
 
-        final String writer = "writer";
+        final String writer = "rw-writer";
         threads.put(writer, new Thread(writer)
         {
             @Override
@@ -417,7 +417,10 @@ public class ReadWriteLockTest
                             }
                         }
                     }
-                    barrier.await();
+                    finally
+                    {
+                        barrier.await();
+                    }
                 }
                 catch (Exception e)
                 {
@@ -483,7 +486,7 @@ public class ReadWriteLockTest
         final String name = UUID.randomUUID().toString();
 
         // This thread is gonna hog the lock for 10 seconds
-        new Thread("hog")
+        new Thread("rw-write-hog")
         {
             @Override
             public void run()
@@ -514,7 +517,7 @@ public class ReadWriteLockTest
         startBarrier.await();
 
         // This thread is going to await the lock for at most 2 seconds (for a few times).
-        new Thread("beg")
+        new Thread("rw-read-beg")
         {
             @Override
             public void run()
