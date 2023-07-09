@@ -120,9 +120,9 @@ public class MutexTest
         final String mutexName = UUID.randomUUID().toString();
         for (int i = 0; i < 3; i++)
         {
-            final String key = String.format("%02d", i);
+            final String key = String.format("mutex-%02d", i);
             counters.put(key, new AtomicLong(0));
-            threads.put(key, new Thread()
+            threads.put(key, new Thread(key)
             {
 
                 private Map<String, Long> getCounters()
@@ -245,7 +245,7 @@ public class MutexTest
         final String name = UUID.randomUUID().toString();
 
         // This thread is gonna hog the lock for 10 seconds
-        new Thread()
+        new Thread("mutex-hog")
         {
             @Override
             public void run()
@@ -276,7 +276,7 @@ public class MutexTest
         startBarrier.await();
 
         // This thread is going to await the lock for at most 2 seconds (for a few times).
-        new Thread()
+        new Thread("mutex-beg")
         {
             @Override
             public void run()
