@@ -73,13 +73,6 @@ public class Wrapper
     {
         String value = null;
 
-        value = Tools.toString(this.cfg.getParam().get(name));
-        if (!Tools.isEmpty(value))
-        {
-            this.log.trace("Found the parameter [{}] with value [{}]", name, value);
-            return value;
-        }
-
         final String sysProp = String.format("wrapper.param.%s", name);
 
         value = System.getProperty(sysProp);
@@ -97,7 +90,14 @@ public class Wrapper
             return value;
         }
 
-        this.log.trace("No sysprop or envvar found for {} or {}", sysProp, envVar);
+        value = Tools.toString(this.cfg.getParam().get(name));
+        if (!Tools.isEmpty(value))
+        {
+            this.log.trace("Found the parameter [{}] with value [{}]", name, value);
+            return value;
+        }
+
+        this.log.trace("No sysprop, envvar, or parameter found for {}, {} or {}", name, sysProp, envVar);
         return null;
     }
 
