@@ -287,7 +287,13 @@ public class Wrapper
                     // The command failed, so communicate it upwards...
                     throw new Exception(String.format("The command exited with a non-0 status: %d", rc));
                 });
-                init.initialize(initializer, maxWait);
+
+                if (!init.initialize(initializer, maxWait))
+                {
+                    InitializationGate.InitializationInfo info = init.getInitializationInfo();
+                    this.log.info("Initialization not executed with version {} because version {} is already there (since {})", version,
+                            info.getVersion(), info.getStarted());
+                }
                 return 0;
 
             default:
