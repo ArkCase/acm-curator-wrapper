@@ -129,6 +129,26 @@ public class InitializationGate extends Recipe
             }
         }
 
+        public Version getVersion()
+        {
+            return this.version;
+        }
+
+        public Instant getStarted()
+        {
+            return this.started;
+        }
+
+        public Duration getDuration()
+        {
+            return this.duration;
+        }
+
+        public Map<String, String> getExtraData()
+        {
+            return this.extraData;
+        }
+
         private byte[] encode()
         {
             try (ByteArrayOutputStream baos = new ByteArrayOutputStream())
@@ -250,7 +270,7 @@ public class InitializationGate extends Recipe
         return false;
     }
 
-    protected InitializationInfo getInitializationInfo() throws Exception
+    public InitializationInfo getInitializationInfo() throws Exception
     {
         try
         {

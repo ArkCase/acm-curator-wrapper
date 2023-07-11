@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -53,6 +54,8 @@ import com.armedia.acm.curator.tools.Version;
 public class InitializationGateTest
 {
     private static TestingServer SERVER = null;
+
+    private final int acceptableWaitSecs = 15;
 
     @BeforeAll
     public static void beforeAll() throws Exception
@@ -194,7 +197,7 @@ public class InitializationGateTest
                 {
                     try
                     {
-                        barrier.await();
+                        barrier.await(InitializationGateTest.this.acceptableWaitSecs, TimeUnit.SECONDS);
                         try (Session session = new Session.Builder().connect(InitializationGateTest.SERVER.getConnectString()).build())
                         {
                             final InitializationGate ig = new InitializationGate(session, name);
@@ -203,7 +206,7 @@ public class InitializationGateTest
                                 ig.initialize(this.initializer);
                             }
                         }
-                        barrier.await();
+                        barrier.await(InitializationGateTest.this.acceptableWaitSecs, TimeUnit.SECONDS);
                     }
                     catch (Exception e)
                     {
@@ -219,10 +222,10 @@ public class InitializationGateTest
             t.start();
         }
         // This will cause them all to synchronize
-        barrier.await();
+        barrier.await(this.acceptableWaitSecs, TimeUnit.SECONDS);
 
         // Now wait for them to complete
-        barrier.await();
+        barrier.await(this.acceptableWaitSecs, TimeUnit.SECONDS);
 
         // Start them, and wait for them to complete
         if (!exceptions.isEmpty())
@@ -314,9 +317,9 @@ public class InitializationGateTest
                             public Map<String, String> initialize(Version current, Map<String, String> extraData) throws Exception
                             {
                                 // Signal that we're ready to keep going
-                                startBarrier.await();
+                                startBarrier.await(InitializationGateTest.this.acceptableWaitSecs, TimeUnit.SECONDS);
                                 // We're going to hold it until we're told to let it go
-                                endBarrier.await();
+                                endBarrier.await(InitializationGateTest.this.acceptableWaitSecs, TimeUnit.SECONDS);
                                 return null;
                             }
                         });
@@ -331,7 +334,7 @@ public class InitializationGateTest
         }.start();
 
         // Wait until the lock is acquired and held by the hog
-        startBarrier.await();
+        startBarrier.await(this.acceptableWaitSecs, TimeUnit.SECONDS);
 
         // This thread is going to await the lock for at most 2 seconds (for a few times).
         new Thread("init-beg")
@@ -344,7 +347,7 @@ public class InitializationGateTest
                     try (Session session = new Session.Builder().connect(InitializationGateTest.SERVER.getConnectString()).build())
                     {
                         final InitializationGate ig = new InitializationGate(session, name);
-                        startBarrier.await();
+                        startBarrier.await(InitializationGateTest.this.acceptableWaitSecs, TimeUnit.SECONDS);
                         for (int i = 0; i < 3; i++)
                         {
                             try
@@ -368,7 +371,7 @@ public class InitializationGateTest
                     }
                     finally
                     {
-                        endBarrier.await();
+                        endBarrier.await(InitializationGateTest.this.acceptableWaitSecs, TimeUnit.SECONDS);
                     }
                 }
                 catch (Exception e)
@@ -380,10 +383,10 @@ public class InitializationGateTest
         }.start();
 
         // Now unleash the beggar
-        startBarrier.await();
+        startBarrier.await(this.acceptableWaitSecs, TimeUnit.SECONDS);
 
         // Wait for everyone
-        endBarrier.await();
+        endBarrier.await(this.acceptableWaitSecs, TimeUnit.SECONDS);
 
         Assertions.assertFalse(failed.get(), "An exception was raised by one of the threads");
     }

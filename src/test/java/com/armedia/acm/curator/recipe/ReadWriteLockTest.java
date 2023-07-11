@@ -34,6 +34,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -51,6 +52,8 @@ import com.armedia.acm.curator.Session;
 public class ReadWriteLockTest
 {
     private static TestingServer SERVER = null;
+
+    private final int acceptableWaitSecs = 15;
 
     @BeforeAll
     public static void beforeAll() throws Exception
@@ -204,7 +207,7 @@ public class ReadWriteLockTest
                     try
                     {
                         runTest();
-                        barrier.await();
+                        barrier.await(ReadWriteLockTest.this.acceptableWaitSecs, TimeUnit.SECONDS);
                     }
                     catch (Exception e)
                     {
@@ -219,11 +222,12 @@ public class ReadWriteLockTest
         {
             t.start();
         }
+
         // This will cause them all to synchronize
-        barrier.await();
+        barrier.await(this.acceptableWaitSecs, TimeUnit.SECONDS);
 
         // Now wait for them to complete
-        barrier.await();
+        barrier.await(this.acceptableWaitSecs, TimeUnit.SECONDS);
 
         // Start them, and wait for them to complete
         if (!exceptions.isEmpty())
@@ -284,9 +288,9 @@ public class ReadWriteLockTest
                         try (AutoCloseable c = rw.read())
                         {
                             // Signal that we're ready to keep going
-                            startBarrier.await();
+                            startBarrier.await(ReadWriteLockTest.this.acceptableWaitSecs, TimeUnit.SECONDS);
                             // We're going to hold it until we're told to let it go
-                            endBarrier.await();
+                            endBarrier.await(ReadWriteLockTest.this.acceptableWaitSecs, TimeUnit.SECONDS);
                         }
                     }
                 }
@@ -299,7 +303,7 @@ public class ReadWriteLockTest
         }.start();
 
         // Wait until the lock is acquired and held by the hog
-        startBarrier.await();
+        startBarrier.await(this.acceptableWaitSecs, TimeUnit.SECONDS);
 
         // This thread is going to await the lock for at most 2 seconds (for a few times).
         new Thread("rw-write-beg")
@@ -312,7 +316,7 @@ public class ReadWriteLockTest
                     try (Session session = new Session.Builder().connect(ReadWriteLockTest.SERVER.getConnectString()).build())
                     {
                         final ReadWriteLock rw = new ReadWriteLock(session, name);
-                        startBarrier.await();
+                        startBarrier.await(ReadWriteLockTest.this.acceptableWaitSecs, TimeUnit.SECONDS);
                         Duration d = Duration.of(2, ChronoUnit.SECONDS);
                         for (int i = 0; i < 3; i++)
                         {
@@ -332,7 +336,7 @@ public class ReadWriteLockTest
                     }
                     finally
                     {
-                        endBarrier.await();
+                        endBarrier.await(ReadWriteLockTest.this.acceptableWaitSecs, TimeUnit.SECONDS);
                     }
                 }
                 catch (Exception e)
@@ -344,10 +348,10 @@ public class ReadWriteLockTest
         }.start();
 
         // Now unleash the beggar
-        startBarrier.await();
+        startBarrier.await(this.acceptableWaitSecs, TimeUnit.SECONDS);
 
         // Wait for everyone
-        endBarrier.await();
+        endBarrier.await(this.acceptableWaitSecs, TimeUnit.SECONDS);
 
         Assertions.assertFalse(failed.get(), "An exception was raised by one of the threads");
     }
@@ -406,7 +410,7 @@ public class ReadWriteLockTest
                                 {
                                     // We only hold the lock to sync with everyone else to ensure
                                     // multiple threads/processes can grab the same read lock
-                                    barrier.await();
+                                    barrier.await(ReadWriteLockTest.this.acceptableWaitSecs, TimeUnit.SECONDS);
                                 }
                             }
                         }
@@ -445,7 +449,7 @@ public class ReadWriteLockTest
                     }
                     finally
                     {
-                        barrier.await();
+                        barrier.await(ReadWriteLockTest.this.acceptableWaitSecs, TimeUnit.SECONDS);
                     }
                 }
                 catch (Exception e)
@@ -461,10 +465,10 @@ public class ReadWriteLockTest
             t.start();
         }
         // This will cause them all to synchronize
-        barrier.await();
+        barrier.await(this.acceptableWaitSecs, TimeUnit.SECONDS);
 
         // Now wait for them to acquire the lock
-        barrier.await();
+        barrier.await(this.acceptableWaitSecs, TimeUnit.SECONDS);
 
         // Start them, and wait for them to complete
         if (!exceptions.isEmpty())
@@ -525,9 +529,9 @@ public class ReadWriteLockTest
                         try (AutoCloseable c = rw.write())
                         {
                             // Signal that we're ready to keep going
-                            startBarrier.await();
+                            startBarrier.await(ReadWriteLockTest.this.acceptableWaitSecs, TimeUnit.SECONDS);
                             // We're going to hold it until we're told to let it go
-                            endBarrier.await();
+                            endBarrier.await(ReadWriteLockTest.this.acceptableWaitSecs, TimeUnit.SECONDS);
                         }
                     }
                 }
@@ -540,7 +544,7 @@ public class ReadWriteLockTest
         }.start();
 
         // Wait until the lock is acquired and held by the hog
-        startBarrier.await();
+        startBarrier.await(this.acceptableWaitSecs, TimeUnit.SECONDS);
 
         // This thread is going to await the lock for at most 2 seconds (for a few times).
         new Thread("rw-read-beg")
@@ -573,7 +577,7 @@ public class ReadWriteLockTest
                     }
                     finally
                     {
-                        endBarrier.await();
+                        endBarrier.await(ReadWriteLockTest.this.acceptableWaitSecs, TimeUnit.SECONDS);
                     }
                 }
                 catch (Exception e)
@@ -585,10 +589,10 @@ public class ReadWriteLockTest
         }.start();
 
         // Now unleash the beggar
-        startBarrier.await();
+        startBarrier.await(this.acceptableWaitSecs, TimeUnit.SECONDS);
 
         // Wait for everyone
-        endBarrier.await();
+        endBarrier.await(this.acceptableWaitSecs, TimeUnit.SECONDS);
 
         Assertions.assertFalse(failed.get(), "An exception was raised by one of the threads");
     }

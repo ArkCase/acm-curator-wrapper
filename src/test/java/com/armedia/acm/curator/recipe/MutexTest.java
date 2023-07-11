@@ -34,6 +34,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -51,6 +52,8 @@ import com.armedia.acm.curator.Session;
 public class MutexTest
 {
     private static TestingServer SERVER = null;
+
+    private final int acceptableWaitSecs = 15;
 
     @BeforeAll
     public static void beforeAll() throws Exception
@@ -169,7 +172,7 @@ public class MutexTest
 
                 private void runTest() throws Exception
                 {
-                    barrier.await();
+                    barrier.await(MutexTest.this.acceptableWaitSecs, TimeUnit.SECONDS);
                     try (Session session = new Session.Builder().connect(MutexTest.SERVER.getConnectString()).build())
                     {
                         final Mutex m = new Mutex(session, mutexName);
@@ -204,7 +207,7 @@ public class MutexTest
                     try
                     {
                         runTest();
-                        barrier.await();
+                        barrier.await(MutexTest.this.acceptableWaitSecs, TimeUnit.SECONDS);
                     }
                     catch (Exception e)
                     {
@@ -220,10 +223,10 @@ public class MutexTest
             t.start();
         }
         // This will cause them all to synchronize
-        barrier.await();
+        barrier.await(this.acceptableWaitSecs, TimeUnit.SECONDS);
 
         // Now wait for them to complete
-        barrier.await();
+        barrier.await(this.acceptableWaitSecs, TimeUnit.SECONDS);
 
         // Start them, and wait for them to complete
         if (!exceptions.isEmpty())
@@ -284,9 +287,9 @@ public class MutexTest
                         try (AutoCloseable c = m.acquire())
                         {
                             // Signal that we're ready to keep going
-                            startBarrier.await();
+                            startBarrier.await(MutexTest.this.acceptableWaitSecs, TimeUnit.SECONDS);
                             // We're going to hold it until we're told to let it go
-                            endBarrier.await();
+                            endBarrier.await(MutexTest.this.acceptableWaitSecs, TimeUnit.SECONDS);
                         }
                     }
                 }
@@ -299,7 +302,7 @@ public class MutexTest
         }.start();
 
         // Wait until the lock is acquired and held by the hog
-        startBarrier.await();
+        startBarrier.await(this.acceptableWaitSecs, TimeUnit.SECONDS);
 
         // This thread is going to await the lock for at most 2 seconds (for a few times).
         new Thread("mutex-beg")
@@ -312,7 +315,7 @@ public class MutexTest
                     try (Session session = new Session.Builder().connect(MutexTest.SERVER.getConnectString()).build())
                     {
                         final Mutex m = new Mutex(session, name);
-                        startBarrier.await();
+                        startBarrier.await(MutexTest.this.acceptableWaitSecs, TimeUnit.SECONDS);
                         Duration d = Duration.of(2, ChronoUnit.SECONDS);
                         for (int i = 0; i < 3; i++)
                         {
@@ -332,7 +335,7 @@ public class MutexTest
                     }
                     finally
                     {
-                        endBarrier.await();
+                        endBarrier.await(MutexTest.this.acceptableWaitSecs, TimeUnit.SECONDS);
                     }
                 }
                 catch (Exception e)
@@ -344,10 +347,10 @@ public class MutexTest
         }.start();
 
         // Now unleash the beggar
-        startBarrier.await();
+        startBarrier.await(this.acceptableWaitSecs, TimeUnit.SECONDS);
 
         // Wait for everyone
-        endBarrier.await();
+        endBarrier.await(this.acceptableWaitSecs, TimeUnit.SECONDS);
 
         Assertions.assertFalse(failed.get(), "An exception was raised by one of the threads");
     }
