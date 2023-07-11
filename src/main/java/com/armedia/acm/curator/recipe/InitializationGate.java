@@ -190,15 +190,25 @@ public class InitializationGate extends Recipe
 
     private final Mutex mutex;
 
+    public InitializationGate(Session session)
+    {
+        this(session, null);
+    }
+
     public InitializationGate(Session session, String name)
     {
         super(session, name);
-        this.mutex = new Mutex(session, String.format("init.%s", this.name));
+        this.mutex = new Mutex(session, String.format("initializer-%s", this.name));
     }
 
     public Mutex getMutex()
     {
         return this.mutex;
+    }
+
+    public boolean initialize(Initializer initializer) throws Exception
+    {
+        return initialize(initializer, null);
     }
 
     public boolean initialize(Initializer initializer, Duration maxWait) throws Exception
@@ -207,6 +217,8 @@ public class InitializationGate extends Recipe
         {
             return false;
         }
+
+        this.session.assertEnabled();
 
         Version incoming = initializer.getVersion();
         this.log.info("Attempting to initialize for [{}] on version {}", this.name, incoming);
@@ -243,7 +255,10 @@ public class InitializationGate extends Recipe
         try
         {
             byte[] data = this.session.getClient().getData().forPath(this.path);
-            this.log.debug("Data loaded from path [{}] = [{}]", this.path, InitializationGate.toHexString(data));
+            if (this.log.isDebugEnabled())
+            {
+                this.log.debug("Data loaded from path [{}] = [{}]", this.path, InitializationGate.toHexString(data));
+            }
             return new InitializationInfo(data);
         }
         catch (NoNodeException e)
@@ -258,7 +273,10 @@ public class InitializationGate extends Recipe
         InitializationInfo info = new InitializationInfo(version, start, duration, extraData);
         this.log.debug("Encoding the data from {}", info);
         byte[] data = info.encode();
-        this.log.debug("Data encoded as [{}]", InitializationGate.toHexString(data));
+        if (this.log.isDebugEnabled())
+        {
+            this.log.debug("Data encoded as [{}]", InitializationGate.toHexString(data));
+        }
         try
         {
             this.session.getClient().setData().forPath(this.path, data);
