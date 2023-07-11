@@ -40,7 +40,7 @@ public class WrapperCfg
     private OperationMode mode = WrapperCfg.DEFAULT_MODE;
     private String name = null;
     private long timeout = 0;
-    private Map<String, ?> params = null;
+    private Map<String, ?> param = null;
     private ExecCfg exec = new ExecCfg();
 
     public OperationMode getMode()
@@ -77,18 +77,18 @@ public class WrapperCfg
         this.timeout = Math.max(0, timeout);
     }
 
-    public Map<String, ?> getParams()
+    public Map<String, ?> getParam()
     {
-        if (this.params == null)
+        if (this.param == null)
         {
-            this.params = new LinkedHashMap<>();
+            this.param = new LinkedHashMap<>();
         }
-        return this.params;
+        return this.param;
     }
 
-    public void setParams(Map<String, ?> params)
+    public void setParam(Map<String, ?> param)
     {
-        this.params = Tools.ifNull(params, LinkedHashMap::new);
+        this.param = Tools.ifNull(param, LinkedHashMap::new);
     }
 
     public ExecCfg getExec()

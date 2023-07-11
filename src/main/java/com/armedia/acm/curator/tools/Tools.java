@@ -55,6 +55,11 @@ public class Tools
         return f;
     }
 
+    public static String toString(Object o)
+    {
+        return (o != null ? o.toString() : null);
+    }
+
     public static String trim(String s)
     {
         return (s != null ? s.trim() : s);

@@ -41,8 +41,8 @@ public class WrapperCfgTest
         WrapperCfg cfg = new WrapperCfg();
         Assertions.assertSame(WrapperCfg.DEFAULT_MODE, cfg.getMode());
         Assertions.assertNull(cfg.getName());
-        Assertions.assertNotNull(cfg.getParams());
-        Assertions.assertTrue(cfg.getParams().isEmpty());
+        Assertions.assertNotNull(cfg.getParam());
+        Assertions.assertTrue(cfg.getParam().isEmpty());
         Assertions.assertNotNull(cfg.getExec());
         Assertions.assertEquals(0L, cfg.getTimeout());
     }
@@ -58,8 +58,8 @@ public class WrapperCfgTest
             cfg.setMode(m);
             Assertions.assertSame(m, cfg.getMode());
             Assertions.assertNull(cfg.getName());
-            Assertions.assertNotNull(cfg.getParams());
-            Assertions.assertTrue(cfg.getParams().isEmpty());
+            Assertions.assertNotNull(cfg.getParam());
+            Assertions.assertTrue(cfg.getParam().isEmpty());
             Assertions.assertNotNull(cfg.getExec());
             Assertions.assertEquals(0L, cfg.getTimeout());
         }
@@ -67,8 +67,8 @@ public class WrapperCfgTest
         cfg.setMode(null);
         Assertions.assertSame(WrapperCfg.DEFAULT_MODE, cfg.getMode());
         Assertions.assertNull(cfg.getName());
-        Assertions.assertNotNull(cfg.getParams());
-        Assertions.assertTrue(cfg.getParams().isEmpty());
+        Assertions.assertNotNull(cfg.getParam());
+        Assertions.assertTrue(cfg.getParam().isEmpty());
         Assertions.assertNotNull(cfg.getExec());
         Assertions.assertEquals(0L, cfg.getTimeout());
     }
@@ -83,16 +83,16 @@ public class WrapperCfgTest
         cfg.setName(str);
         Assertions.assertSame(WrapperCfg.DEFAULT_MODE, cfg.getMode());
         Assertions.assertEquals(str, cfg.getName());
-        Assertions.assertNotNull(cfg.getParams());
-        Assertions.assertTrue(cfg.getParams().isEmpty());
+        Assertions.assertNotNull(cfg.getParam());
+        Assertions.assertTrue(cfg.getParam().isEmpty());
         Assertions.assertNotNull(cfg.getExec());
         Assertions.assertEquals(0L, cfg.getTimeout());
 
         cfg.setName(null);
         Assertions.assertSame(WrapperCfg.DEFAULT_MODE, cfg.getMode());
         Assertions.assertNull(cfg.getName());
-        Assertions.assertNotNull(cfg.getParams());
-        Assertions.assertTrue(cfg.getParams().isEmpty());
+        Assertions.assertNotNull(cfg.getParam());
+        Assertions.assertTrue(cfg.getParam().isEmpty());
         Assertions.assertNotNull(cfg.getExec());
         Assertions.assertEquals(0L, cfg.getTimeout());
     }
@@ -108,8 +108,8 @@ public class WrapperCfgTest
             cfg.setTimeout(i);
             Assertions.assertSame(WrapperCfg.DEFAULT_MODE, cfg.getMode());
             Assertions.assertNull(cfg.getName());
-            Assertions.assertNotNull(cfg.getParams());
-            Assertions.assertTrue(cfg.getParams().isEmpty());
+            Assertions.assertNotNull(cfg.getParam());
+            Assertions.assertTrue(cfg.getParam().isEmpty());
             Assertions.assertNotNull(cfg.getExec());
             Assertions.assertEquals(0L, cfg.getTimeout());
         }
@@ -119,8 +119,8 @@ public class WrapperCfgTest
             cfg.setTimeout(i);
             Assertions.assertSame(WrapperCfg.DEFAULT_MODE, cfg.getMode());
             Assertions.assertNull(cfg.getName());
-            Assertions.assertNotNull(cfg.getParams());
-            Assertions.assertTrue(cfg.getParams().isEmpty());
+            Assertions.assertNotNull(cfg.getParam());
+            Assertions.assertTrue(cfg.getParam().isEmpty());
             Assertions.assertNotNull(cfg.getExec());
             Assertions.assertEquals(i, cfg.getTimeout());
         }
@@ -128,8 +128,8 @@ public class WrapperCfgTest
         cfg.setTimeout(0L);
         Assertions.assertSame(WrapperCfg.DEFAULT_MODE, cfg.getMode());
         Assertions.assertNull(cfg.getName());
-        Assertions.assertNotNull(cfg.getParams());
-        Assertions.assertTrue(cfg.getParams().isEmpty());
+        Assertions.assertNotNull(cfg.getParam());
+        Assertions.assertTrue(cfg.getParam().isEmpty());
         Assertions.assertNotNull(cfg.getExec());
         Assertions.assertEquals(0L, cfg.getTimeout());
     }
@@ -138,10 +138,10 @@ public class WrapperCfgTest
     public void testParams()
     {
         WrapperCfg cfg = new WrapperCfg();
-        Assertions.assertNotNull(cfg.getParams());
-        Assertions.assertTrue(cfg.getParams().isEmpty());
+        Assertions.assertNotNull(cfg.getParam());
+        Assertions.assertTrue(cfg.getParam().isEmpty());
 
-        Map<String, ?> p = cfg.getParams();
+        Map<String, ?> p = cfg.getParam();
         Map<String, Object> m = new TreeMap<>();
         Map<String, Object> n = new TreeMap<>();
         for (int i = 0; i < 10; i++)
@@ -152,23 +152,23 @@ public class WrapperCfgTest
             n.put(k, v);
         }
 
-        cfg.setParams(m);
+        cfg.setParam(m);
         Assertions.assertSame(WrapperCfg.DEFAULT_MODE, cfg.getMode());
         Assertions.assertNull(cfg.getName());
-        Assertions.assertNotSame(p, cfg.getParams());
-        Assertions.assertSame(m, cfg.getParams());
-        Assertions.assertFalse(cfg.getParams().isEmpty());
+        Assertions.assertNotSame(p, cfg.getParam());
+        Assertions.assertSame(m, cfg.getParam());
+        Assertions.assertFalse(cfg.getParam().isEmpty());
         Assertions.assertEquals(n, m);
         Assertions.assertNotNull(cfg.getExec());
         Assertions.assertEquals(0L, cfg.getTimeout());
 
-        cfg.setParams(null);
+        cfg.setParam(null);
         Assertions.assertSame(WrapperCfg.DEFAULT_MODE, cfg.getMode());
         Assertions.assertNull(cfg.getName());
-        Assertions.assertNotNull(cfg.getParams());
-        Assertions.assertTrue(cfg.getParams().isEmpty());
-        Assertions.assertNotSame(p, cfg.getParams());
-        Assertions.assertNotSame(m, cfg.getParams());
+        Assertions.assertNotNull(cfg.getParam());
+        Assertions.assertTrue(cfg.getParam().isEmpty());
+        Assertions.assertNotSame(p, cfg.getParam());
+        Assertions.assertNotSame(m, cfg.getParam());
         Assertions.assertNotNull(cfg.getExec());
         Assertions.assertEquals(0L, cfg.getTimeout());
     }
@@ -182,8 +182,8 @@ public class WrapperCfgTest
         ExecCfg e = cfg.getExec();
         Assertions.assertSame(WrapperCfg.DEFAULT_MODE, cfg.getMode());
         Assertions.assertNull(cfg.getName());
-        Assertions.assertNotNull(cfg.getParams());
-        Assertions.assertTrue(cfg.getParams().isEmpty());
+        Assertions.assertNotNull(cfg.getParam());
+        Assertions.assertTrue(cfg.getParam().isEmpty());
         Assertions.assertSame(e, cfg.getExec());
         Assertions.assertEquals(0L, cfg.getTimeout());
 
@@ -191,8 +191,8 @@ public class WrapperCfgTest
         cfg.setExec(n);
         Assertions.assertSame(WrapperCfg.DEFAULT_MODE, cfg.getMode());
         Assertions.assertNull(cfg.getName());
-        Assertions.assertNotNull(cfg.getParams());
-        Assertions.assertTrue(cfg.getParams().isEmpty());
+        Assertions.assertNotNull(cfg.getParam());
+        Assertions.assertTrue(cfg.getParam().isEmpty());
         Assertions.assertNotSame(e, cfg.getExec());
         Assertions.assertSame(n, cfg.getExec());
         Assertions.assertEquals(0L, cfg.getTimeout());
@@ -200,8 +200,8 @@ public class WrapperCfgTest
         cfg.setExec(null);
         Assertions.assertSame(WrapperCfg.DEFAULT_MODE, cfg.getMode());
         Assertions.assertNull(cfg.getName());
-        Assertions.assertNotNull(cfg.getParams());
-        Assertions.assertTrue(cfg.getParams().isEmpty());
+        Assertions.assertNotNull(cfg.getParam());
+        Assertions.assertTrue(cfg.getParam().isEmpty());
         Assertions.assertNotNull(cfg.getExec());
         Assertions.assertNotSame(e, cfg.getExec());
         Assertions.assertNotSame(n, cfg.getExec());

@@ -69,6 +69,38 @@ public class Wrapper
         this.cfg = Tools.ifNull(cfg, WrapperCfg::new);
     }
 
+    private String getParameter(String name)
+    {
+        String value = null;
+
+        value = Tools.toString(this.cfg.getParam().get(name));
+        if (!Tools.isEmpty(value))
+        {
+            this.log.trace("Found the parameter [{}] with value [{}]", name, value);
+            return value;
+        }
+
+        final String sysProp = String.format("wrapper.param.%s", name);
+
+        value = System.getProperty(sysProp);
+        if (!Tools.isEmpty(value))
+        {
+            this.log.trace("Found the system property {} with value [{}]", sysProp, value);
+            return value;
+        }
+
+        String envVar = sysProp.replace('.', '_').toUpperCase();
+        value = System.getenv(envVar);
+        if (!Tools.isEmpty(value))
+        {
+            this.log.trace("Found the environment variable {} with value [{}]", envVar, value);
+            return value;
+        }
+
+        this.log.trace("No sysprop or envvar found for {} or {}", sysProp, envVar);
+        return null;
+    }
+
     private void redirect(boolean from, String path, Consumer<Redirect> tgt)
     {
         Redirect redirect = Redirect.INHERIT;
@@ -226,9 +258,26 @@ public class Wrapper
             case init:
                 this.log.info("Creating an initializer gate");
                 InitializationGate init = new InitializationGate(session, this.cfg.getName());
-                Object o = this.cfg.getParams().get("version");
-                Version version = (o != null ? Version.parse(o.toString()) : null);
-                Initializer initializer = new FunctionalInitializer(version, (v, e) -> {
+                final String version = getParameter("version");
+                if (Tools.isEmpty(version))
+                {
+                    this.log.error("Must provide a non-null, non-empty value for wrapper.param.version");
+                    return 1;
+                }
+
+                final String marker = getParameter("marker");
+                final String markerStdErr = getParameter("markerStdErr");
+                final Initializer initializer = new FunctionalInitializer(Version.parse(version), (v, e) -> {
+
+                    if (!Tools.isEmpty(marker))
+                    {
+                        boolean stdErr = (!Tools.isEmpty(markerStdErr) && Boolean.valueOf(markerStdErr));
+                        // We've been asked to spit out a marker before running the initializer command,
+                        // so do just that. We spit it out on its very own line, on the selected stream
+                        // (i.e. we support using STDOUT or STDERR, per the caller's preference).
+                        (stdErr ? System.err : System.out).printf("Initializer lock acquired:%n%s%n", marker);
+                    }
+
                     int rc = run(cmd);
                     if (rc == 0)
                     {
