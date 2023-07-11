@@ -417,7 +417,9 @@ public class ReadWriteLockTest
                     }
                     catch (Exception e)
                     {
+                        ReadWriteLockTest.this.log.error("Thread {} raised an exception", key, e);
                         exceptions.put(key, e);
+                        barrier.reset();
                     }
                 }
             });
@@ -454,7 +456,9 @@ public class ReadWriteLockTest
                 }
                 catch (Exception e)
                 {
+                    ReadWriteLockTest.this.log.error("Thread {} raised an exception", writer, e);
                     exceptions.put(writer, e);
+                    barrier.reset();
                 }
             }
         });
