@@ -385,6 +385,8 @@ public class ReadWriteLockTest
         }
 
         // Try multithreading to ensure we really are ReadWriteLocking
+        final CyclicBarrier readerBarrier = new CyclicBarrier(4);
+        final CyclicBarrier writerBarrier = new CyclicBarrier(2);
         final CyclicBarrier barrier = new CyclicBarrier(5);
         Map<String, Thread> threads = new LinkedHashMap<>();
         final Map<String, Throwable> exceptions = new LinkedHashMap<>();
@@ -400,7 +402,7 @@ public class ReadWriteLockTest
                 {
                     try
                     {
-                        barrier.await();
+                        readerBarrier.await(ReadWriteLockTest.this.acceptableWaitSecs, TimeUnit.SECONDS);
                         try (Session session = new Session.Builder().connect(ReadWriteLockTest.SERVER.getConnectString()).build())
                         {
                             final ReadWriteLock rw = new ReadWriteLock(session, name);
@@ -410,6 +412,7 @@ public class ReadWriteLockTest
                                 {
                                     // We only hold the lock to sync with everyone else to ensure
                                     // multiple threads/processes can grab the same read lock
+                                    readerBarrier.await(ReadWriteLockTest.this.acceptableWaitSecs, TimeUnit.SECONDS);
                                     barrier.await(ReadWriteLockTest.this.acceptableWaitSecs, TimeUnit.SECONDS);
                                 }
                             }
@@ -419,6 +422,7 @@ public class ReadWriteLockTest
                     {
                         ReadWriteLockTest.this.log.error("Thread {} raised an exception", key, e);
                         exceptions.put(key, e);
+                        readerBarrier.reset();
                         barrier.reset();
                     }
                 }
@@ -433,7 +437,7 @@ public class ReadWriteLockTest
             {
                 try
                 {
-                    barrier.await();
+                    writerBarrier.await();
                     try (Session session = new Session.Builder().connect(ReadWriteLockTest.SERVER.getConnectString()).build())
                     {
                         final ReadWriteLock rw = new ReadWriteLock(session, name);
@@ -458,6 +462,7 @@ public class ReadWriteLockTest
                 {
                     ReadWriteLockTest.this.log.error("Thread {} raised an exception", writer, e);
                     exceptions.put(writer, e);
+                    writerBarrier.reset();
                     barrier.reset();
                 }
             }
@@ -468,10 +473,17 @@ public class ReadWriteLockTest
         {
             t.start();
         }
-        // This will cause them all to synchronize
-        barrier.await(this.acceptableWaitSecs, TimeUnit.SECONDS);
 
-        // Now wait for them to acquire the lock
+        // This will cause the readers to synchronize
+        readerBarrier.await(this.acceptableWaitSecs, TimeUnit.SECONDS);
+
+        // This will only release after all the readers have acquired the lock
+        readerBarrier.await(this.acceptableWaitSecs, TimeUnit.SECONDS);
+
+        // This will synchronize the main thread and the writer
+        writerBarrier.await(this.acceptableWaitSecs, TimeUnit.SECONDS);
+
+        // Now wait for all threads to complete their processing
         barrier.await(this.acceptableWaitSecs, TimeUnit.SECONDS);
 
         // Start them, and wait for them to complete

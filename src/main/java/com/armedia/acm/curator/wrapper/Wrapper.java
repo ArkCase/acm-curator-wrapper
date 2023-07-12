@@ -49,7 +49,6 @@ import com.armedia.acm.curator.recipe.Leader;
 import com.armedia.acm.curator.recipe.Mutex;
 import com.armedia.acm.curator.tools.CheckedSupplier;
 import com.armedia.acm.curator.tools.Tools;
-import com.armedia.acm.curator.tools.Version;
 import com.armedia.acm.curator.wrapper.conf.ExecCfg;
 import com.armedia.acm.curator.wrapper.conf.OperationMode;
 import com.armedia.acm.curator.wrapper.conf.RedirectCfg;
@@ -267,7 +266,7 @@ public class Wrapper
 
                 final String marker = getParameter("marker");
                 final String markerStdErr = getParameter("markerStdErr");
-                final Initializer initializer = new FunctionalInitializer(Version.parse(version), (v, e) -> {
+                final Initializer initializer = new FunctionalInitializer(version, (v, e) -> {
 
                     if (!Tools.isEmpty(marker))
                     {

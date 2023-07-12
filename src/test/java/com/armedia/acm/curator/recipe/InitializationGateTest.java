@@ -4,22 +4,22 @@
  * %%
  * Copyright (C) 2023 ArkCase LLC
  * %%
- * This file is part of the ArkCase software.
- *
- * If the software was purchased under a paid ArkCase license, the terms of
- * the paid license agreement will prevail.  Otherwise, the software is
+ * This file is part of the ArkCase software. 
+ * 
+ * If the software was purchased under a paid ArkCase license, the terms of 
+ * the paid license agreement will prevail.  Otherwise, the software is 
  * provided under the following open source license terms:
- *
+ * 
  * ArkCase is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
+ *  
  * ArkCase is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU Lesser General Public License
  * along with ArkCase. If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -49,7 +49,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.armedia.acm.curator.Session;
-import com.armedia.acm.curator.tools.Version;
 
 public class InitializationGateTest
 {
@@ -121,10 +120,10 @@ public class InitializationGateTest
             Assertions.assertFalse(session.isEnabled());
             InitializationGate ig = new InitializationGate(session);
             final AtomicBoolean initialized = new AtomicBoolean();
-            final InitializationGate.Initializer initializer = new InitializationGate.Initializer(Version.parse("1.0.0"))
+            final InitializationGate.Initializer initializer = new InitializationGate.Initializer("1.0.0")
             {
                 @Override
-                public Map<String, String> initialize(Version current, Map<String, String> extraData) throws Exception
+                public Map<String, String> initialize(String current, Map<String, String> extraData) throws Exception
                 {
                     initialized.set(true);
                     return null;
@@ -148,10 +147,10 @@ public class InitializationGateTest
             Assertions.assertTrue(session.isEnabled());
             InitializationGate ig = new InitializationGate(session);
             final AtomicInteger counter = new AtomicInteger();
-            InitializationGate.Initializer initializer = new InitializationGate.Initializer(Version.parse("1.0.0"))
+            InitializationGate.Initializer initializer = new InitializationGate.Initializer("1.0.0")
             {
                 @Override
-                public Map<String, String> initialize(Version current, Map<String, String> extraData) throws Exception
+                public Map<String, String> initialize(String current, Map<String, String> extraData) throws Exception
                 {
                     counter.incrementAndGet();
                     return null;
@@ -174,17 +173,17 @@ public class InitializationGateTest
         final Map<String, Throwable> exceptions = Collections.synchronizedMap(new LinkedHashMap<>());
         final String name = UUID.randomUUID().toString();
 
-        final Version version = Version.parse("1.0.1");
+        final String version = "1.0.1";
         for (int i = 0; i < 3; i++)
         {
-            final String key = String.format("init-%02d", i);
+            final String key = java.lang.String.format("init-%02d", i);
             threads.put(key, new Thread(key)
             {
 
                 private final InitializationGate.Initializer initializer = new InitializationGate.Initializer(version)
                 {
                     @Override
-                    public Map<String, String> initialize(Version current, Map<String, String> extraData) throws Exception
+                    public Map<String, String> initialize(String current, Map<String, String> extraData) throws Exception
                     {
                         callers.add(key);
                         return null;
@@ -248,10 +247,10 @@ public class InitializationGateTest
             Assertions.assertFalse(session.isEnabled());
             InitializationGate ig = new InitializationGate(session);
             final AtomicBoolean initialized = new AtomicBoolean();
-            final InitializationGate.Initializer initializer = new InitializationGate.Initializer(Version.parse("1.0.0"))
+            final InitializationGate.Initializer initializer = new InitializationGate.Initializer("1.0.0")
             {
                 @Override
-                public Map<String, String> initialize(Version current, Map<String, String> extraData) throws Exception
+                public Map<String, String> initialize(String current, Map<String, String> extraData) throws Exception
                 {
                     initialized.set(true);
                     return null;
@@ -275,10 +274,10 @@ public class InitializationGateTest
             Assertions.assertTrue(session.isEnabled());
             InitializationGate ig = new InitializationGate(session);
             final AtomicInteger counter = new AtomicInteger();
-            InitializationGate.Initializer initializer = new InitializationGate.Initializer(Version.parse("1.0.0"))
+            InitializationGate.Initializer initializer = new InitializationGate.Initializer("1.0.0")
             {
                 @Override
-                public Map<String, String> initialize(Version current, Map<String, String> extraData) throws Exception
+                public Map<String, String> initialize(String current, Map<String, String> extraData) throws Exception
                 {
                     counter.incrementAndGet();
                     return null;
@@ -311,10 +310,10 @@ public class InitializationGateTest
                     try (Session session = new Session.Builder().connect(InitializationGateTest.SERVER.getConnectString()).build())
                     {
                         final InitializationGate ig = new InitializationGate(session, name);
-                        ig.initialize(new InitializationGate.Initializer(Version.parse("1.0.0"))
+                        ig.initialize(new InitializationGate.Initializer("1.0.0")
                         {
                             @Override
-                            public Map<String, String> initialize(Version current, Map<String, String> extraData) throws Exception
+                            public Map<String, String> initialize(String current, Map<String, String> extraData) throws Exception
                             {
                                 // Signal that we're ready to keep going
                                 startBarrier.await(InitializationGateTest.this.acceptableWaitSecs, TimeUnit.SECONDS);
@@ -352,10 +351,10 @@ public class InitializationGateTest
                         {
                             try
                             {
-                                ig.initialize(new InitializationGate.Initializer(Version.parse("1.0.0"))
+                                ig.initialize(new InitializationGate.Initializer("1.0.0")
                                 {
                                     @Override
-                                    public Map<String, String> initialize(Version current, Map<String, String> extraData) throws Exception
+                                    public Map<String, String> initialize(String current, Map<String, String> extraData) throws Exception
                                     {
                                         Assertions.fail("Acquired an initializer lock that isn't available");
                                         return null;

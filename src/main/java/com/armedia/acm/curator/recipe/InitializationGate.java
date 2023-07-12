@@ -37,45 +37,45 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
 
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.armedia.acm.curator.Session;
 import com.armedia.acm.curator.tools.CheckedBiFunction;
-import com.armedia.acm.curator.tools.Version;
 
 public class InitializationGate extends Recipe
 {
     public static abstract class Initializer
     {
-        private final Version version;
+        private final String version;
 
-        public Initializer(Version version)
+        public Initializer(String version)
         {
             this.version = Objects.requireNonNull(version, "Must provide a non-null version for the initializer");
         }
 
-        public final Version getVersion()
+        public final String getVersion()
         {
             return this.version;
         }
 
-        public abstract Map<String, String> initialize(Version current, Map<String, String> extraData) throws Exception;
+        public abstract Map<String, String> initialize(String current, Map<String, String> extraData) throws Exception;
     }
 
     public static class FunctionalInitializer extends Initializer
     {
-        private final CheckedBiFunction<Version, Map<String, String>, Map<String, String>> initializer;
+        private final CheckedBiFunction<String, Map<String, String>, Map<String, String>> initializer;
 
-        public FunctionalInitializer(Version version, CheckedBiFunction<Version, Map<String, String>, Map<String, String>> initializer)
+        public FunctionalInitializer(String version, CheckedBiFunction<String, Map<String, String>, Map<String, String>> initializer)
         {
             super(version);
             this.initializer = initializer;
         }
 
         @Override
-        public final Map<String, String> initialize(Version current, Map<String, String> extraData) throws Exception
+        public final Map<String, String> initialize(String current, Map<String, String> extraData) throws Exception
         {
             return (this.initializer != null) //
                     ? this.initializer.applyChecked(current, extraData) //
@@ -90,7 +90,7 @@ public class InitializationGate extends Recipe
     {
         private static final long serialVersionUID = 1L;
 
-        private final Version version;
+        private final String version;
         private final Instant started;
         private final Duration duration;
         private final Map<String, String> extraData;
@@ -99,7 +99,7 @@ public class InitializationGate extends Recipe
         {
             try (ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(data)))
             {
-                this.version = Version.class.cast(in.readObject());
+                this.version = String.class.cast(in.readObject());
                 this.started = Instant.class.cast(in.readObject());
                 this.duration = Duration.class.cast(in.readObject());
                 @SuppressWarnings("unchecked")
@@ -112,7 +112,7 @@ public class InitializationGate extends Recipe
             }
         }
 
-        private InitializationInfo(Version version, Instant started, Duration duration, Map<String, String> extraData)
+        private InitializationInfo(String version, Instant started, Duration duration, Map<String, String> extraData)
         {
             this.version = version;
             if (version != null)
@@ -129,7 +129,7 @@ public class InitializationGate extends Recipe
             }
         }
 
-        public Version getVersion()
+        public String getVersion()
         {
             return this.version;
         }
@@ -168,13 +168,24 @@ public class InitializationGate extends Recipe
             }
         }
 
-        private boolean needsUpdate(Version v)
+        private boolean needsUpdate(String v)
         {
-            if (v == null)
+            // If *they* don't have a version or it's the same as ours, no update
+            if ((v == null) || Objects.equals(this.version, v))
             {
                 return false;
             }
-            return (v.compareTo(this.version) > 0);
+
+            // If *we* don't have a version but they do, for sure we need an update
+            if (this.version == null)
+            {
+                return true;
+            }
+
+            // We both have versions? Compare them for realsies...
+            ComparableVersion a = new ComparableVersion(v);
+            ComparableVersion b = new ComparableVersion(this.version);
+            return a.compareTo(b) > 0;
         }
 
         @Override
@@ -240,7 +251,7 @@ public class InitializationGate extends Recipe
 
         this.session.assertEnabled();
 
-        Version incoming = initializer.getVersion();
+        String incoming = initializer.getVersion();
         this.log.info("Attempting to initialize for [{}] on version {}", this.name, incoming);
         InitializationInfo existing = getInitializationInfo();
         this.log.info("Existing version info before mutex lock      : {}", existing);
@@ -287,7 +298,7 @@ public class InitializationGate extends Recipe
         }
     }
 
-    protected void setInitializationInfo(Version version, Instant start, Duration duration, Map<String, String> extraData)
+    protected void setInitializationInfo(String version, Instant start, Duration duration, Map<String, String> extraData)
             throws IOException, Exception
     {
         InitializationInfo info = new InitializationInfo(version, start, duration, extraData);
