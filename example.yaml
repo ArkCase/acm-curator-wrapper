@@ -1,3 +1,4 @@
+# Note: Environment and System Properties are supported via ${}
 session:
   # The zookeeper connection string (default: none)
   connect: "zookeper connect string"
@@ -20,9 +21,16 @@ session:
 
 wrapper:
   # The mode of operation. If none is given, the command is executed directly
-  mode: ("direct"|"leader"|"mutex"|"barrier")
+  mode: ("direct"|"leader"|"mutex"|"barrier"|"init")
   name: "the name of the leader task, mutex, or barrier to use"
   timeout: timeout-in-millis
+
+  param:
+    name1: value1
+    name2: value2
+    name3: value3
+    # ...
+    nameN: valueN
 
   # Information about the command/executable being wrapped
   exec:
@@ -31,13 +39,14 @@ wrapper:
 
     # The actual command to run (required, no default)
     command: [ command, args, one, by, one ]
-    # command: "in-string-format-to-be-run-using-a-shell"
+    # command: "in-single-string-format (will be split by spaces)"
 
     # The environment to set for the command. Variables will be expanded to resolve
     # system properties before being set for execution (default: none)
     env:
       key1: value1
       key2: value2
+      key3: value3
       # ....
       keyN: valueN
 
