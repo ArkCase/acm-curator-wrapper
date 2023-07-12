@@ -27,7 +27,6 @@
 package com.armedia.acm.curator.wrapper;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -203,16 +202,13 @@ public class Wrapper
 
         try
         {
-            return pb.start().waitFor();
+            int result = pb.start().waitFor();
+            this.log.info("Command exit status: {}", result);
+            return result;
         }
-        catch (IOException e)
+        catch (Exception e)
         {
-            this.log.error("IOException caught running the command", e);
-            return 1;
-        }
-        catch (InterruptedException e)
-        {
-            this.log.error("Interrupted waiting for the command to complete", e);
+            this.log.error("Exception caught running the command", e);
             return 1;
         }
     }
