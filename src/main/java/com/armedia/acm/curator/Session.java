@@ -158,14 +158,6 @@ public class Session implements AutoCloseable
         return this.client;
     }
 
-    public void assertEnabled()
-    {
-        if (!isEnabled())
-        {
-            throw new IllegalStateException("Zookeeper is not enabled");
-        }
-    }
-
     public synchronized boolean isEnabled()
     {
         return (this.client != null);

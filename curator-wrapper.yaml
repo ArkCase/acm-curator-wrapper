@@ -1,0 +1,20 @@
+session:
+  connect: "zookeeper:2181"
+  sessionTimeout: 1000
+  connectionTimeout: 5000
+  basePath: "/arkcase/pentaho"
+
+  retry:
+    count: 0
+    delay: 1000
+
+wrapper:
+  mode: "init"
+  name: "initialization"
+
+  param:
+    version: "1.0.1"
+    marker: "a14f6037-bde4-4af2-8f2c-a18c36dd2b6c"
+
+  exec:
+    command: "ls -l"

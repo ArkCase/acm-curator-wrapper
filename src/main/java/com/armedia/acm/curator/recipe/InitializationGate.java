@@ -246,10 +246,9 @@ public class InitializationGate extends Recipe
     {
         if (initializer == null)
         {
+            this.log.debug("No initializer given, returning immediately");
             return false;
         }
-
-        this.session.assertEnabled();
 
         String incoming = initializer.getVersion();
         this.log.info("Attempting to initialize for [{}] on version {}", this.name, incoming);
@@ -283,9 +282,15 @@ public class InitializationGate extends Recipe
 
     public InitializationInfo getInitializationInfo() throws Exception
     {
+        if (!isSessionEnabled())
+        {
+            this.log.warn("The current session is not enabled, cannot retrieve the stored initialization information");
+            return InitializationGate.NULL_INFO;
+        }
+
         try
         {
-            byte[] data = this.session.getClient().getData().forPath(this.path);
+            byte[] data = getClient().getData().forPath(this.path);
             if (this.log.isDebugEnabled())
             {
                 this.log.debug("Data loaded from path [{}] = [{}]", this.path, InitializationGate.toHexString(data));
@@ -301,6 +306,12 @@ public class InitializationGate extends Recipe
     protected void setInitializationInfo(String version, Instant start, Duration duration, Map<String, String> extraData)
             throws IOException, Exception
     {
+        if (!isSessionEnabled())
+        {
+            this.log.warn("The current session is not enabled, cannot store the new initialization information");
+            return;
+        }
+
         InitializationInfo info = new InitializationInfo(version, start, duration, extraData);
         this.log.debug("Encoding the data from {}", info);
         byte[] data = info.encode();
@@ -310,11 +321,11 @@ public class InitializationGate extends Recipe
         }
         try
         {
-            this.session.getClient().setData().forPath(this.path, data);
+            getClient().setData().forPath(this.path, data);
         }
         catch (NoNodeException e)
         {
-            this.session.getClient().create().creatingParentContainersIfNeeded().forPath(this.path, data);
+            getClient().create().creatingParentContainersIfNeeded().forPath(this.path, data);
         }
     }
 }

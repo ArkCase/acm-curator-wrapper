@@ -26,8 +26,9 @@
  */
 package com.armedia.acm.curator.recipe;
 
-import java.util.Objects;
 import java.util.UUID;
+
+import org.apache.curator.framework.CuratorFramework;
 
 import com.armedia.acm.curator.Session;
 import com.armedia.acm.curator.tools.Tools;
@@ -44,7 +45,7 @@ public class Recipe
         return name;
     }
 
-    protected final Session session;
+    private final Session session;
     protected final String name;
     protected final String path;
 
@@ -55,8 +56,9 @@ public class Recipe
 
     protected Recipe(Session session, String name)
     {
-        this.session = Objects.requireNonNull(session, "Must provide a non-null Session object");
-        String root = String.format("%s/%s", session.getBasePath(), getClass().getSimpleName().toLowerCase());
+        this.session = session;
+        String root = String.format("%s/%s", (session != null ? session.getBasePath() : "/arkcase"),
+                getClass().getSimpleName().toLowerCase());
         if (Tools.isEmpty(name))
         {
             this.name = UUID.randomUUID().toString();
@@ -66,6 +68,34 @@ public class Recipe
             this.name = Recipe.sanitize(name);
         }
         this.path = String.format("%s/%s", root, this.name);
+    }
+
+    protected final boolean isSessionEnabled()
+    {
+        return (this.session != null) && this.session.isEnabled();
+    }
+
+    protected final CuratorFramework getClient()
+    {
+        return (this.session != null ? this.session.getClient() : null);
+    }
+
+    protected final Object addCleanup(AutoCloseable cleanup)
+    {
+        if (cleanup != null)
+        {
+            return this.session.addCleanup(cleanup);
+        }
+        return null;
+    }
+
+    protected final AutoCloseable removeCleanup(Object key)
+    {
+        if (key != null)
+        {
+            return this.session.removeCleanup(key);
+        }
+        return null;
     }
 
     public final Session getSession()

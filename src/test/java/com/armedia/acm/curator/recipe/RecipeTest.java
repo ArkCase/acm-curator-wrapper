@@ -41,29 +41,12 @@ public class RecipeTest
     @Test
     public void testConstructor() throws Exception
     {
-        try
+        new Recipe(null)
         {
-            new Recipe(null)
-            {
-            };
-            Assertions.fail("Did not fail with a null parameter");
-        }
-        catch (NullPointerException e)
+        };
+        new Recipe(null, null)
         {
-            // all is well
-        }
-
-        try
-        {
-            new Recipe(null, null)
-            {
-            };
-            Assertions.fail("Did not fail with a null parameter");
-        }
-        catch (NullPointerException e)
-        {
-            // all is well
-        }
+        };
 
         Session.Builder builder = new Session.Builder();
         try (Session session = builder.build())

@@ -309,35 +309,6 @@ public class SessionTest
     }
 
     @Test
-    public void testAssertEnabled() throws Exception
-    {
-        Session.Builder builder = new Session.Builder();
-
-        try (Session session = builder.build())
-        {
-            Assertions.assertFalse(session.isEnabled());
-            session.assertEnabled();
-            Assertions.fail("Did not fail when the session was disabled");
-        }
-        catch (IllegalStateException e)
-        {
-            // All's well
-        }
-
-        builder.connect(SessionTest.SERVER.getConnectString());
-        try (Session session = builder.build())
-        {
-            Assertions.assertTrue(session.isEnabled());
-            session.assertEnabled();
-            // All's well
-        }
-        catch (IllegalStateException e)
-        {
-            Assertions.fail("Failed when a good connection existed");
-        }
-    }
-
-    @Test
     public void testAddCleanup() throws Exception
     {
         Session.Builder builder = new Session.Builder();

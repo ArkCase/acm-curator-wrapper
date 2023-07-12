@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.armedia.acm.curator.Session;
+import com.armedia.acm.curator.tools.Tools;
 
 public class Mutex extends Recipe
 {
@@ -48,7 +49,7 @@ public class Mutex extends Recipe
 
         private Closer(InterProcessMutex lock)
         {
-            this.cleanupKey = Mutex.this.session.addCleanup(this);
+            this.cleanupKey = addCleanup(this);
             Mutex.this.log.trace("Cleanup key is [{}]", this.cleanupKey);
             this.lock = lock;
         }
@@ -63,7 +64,7 @@ public class Mutex extends Recipe
             }
             finally
             {
-                Mutex.this.session.removeCleanup(this.cleanupKey);
+                removeCleanup(this.cleanupKey);
             }
         }
     }
@@ -85,9 +86,13 @@ public class Mutex extends Recipe
 
     public AutoCloseable acquire(Duration maxWait) throws Exception
     {
-        this.session.assertEnabled();
+        if (!isSessionEnabled())
+        {
+            this.log.warn("The current session is not enabled, no mutex to acquire");
+            return Tools::noop;
+        }
 
-        final InterProcessMutex lock = new InterProcessMutex(this.session.getClient(), this.path);
+        final InterProcessMutex lock = new InterProcessMutex(getClient(), this.path);
         if ((maxWait != null) && !maxWait.isNegative() && !maxWait.isZero())
         {
             this.log.info("Acquiring the mutex at [{}] (maximum wait {})", this.path, maxWait);

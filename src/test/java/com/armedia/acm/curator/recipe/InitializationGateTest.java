@@ -4,22 +4,22 @@
  * %%
  * Copyright (C) 2023 ArkCase LLC
  * %%
- * This file is part of the ArkCase software. 
- * 
- * If the software was purchased under a paid ArkCase license, the terms of 
- * the paid license agreement will prevail.  Otherwise, the software is 
+ * This file is part of the ArkCase software.
+ *
+ * If the software was purchased under a paid ArkCase license, the terms of
+ * the paid license agreement will prevail.  Otherwise, the software is
  * provided under the following open source license terms:
- * 
+ *
  * ArkCase is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *  
+ *
  * ArkCase is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with ArkCase. If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -86,25 +86,9 @@ public class InitializationGateTest
     @Test
     public void testConstructor() throws Exception
     {
-        try
-        {
-            new InitializationGate(null);
-            Assertions.fail("Did not fail with a null session");
-        }
-        catch (NullPointerException e)
-        {
-            // All is well
-        }
+        new InitializationGate(null);
 
-        try
-        {
-            new InitializationGate(null, null);
-            Assertions.fail("Did not fail with a null session");
-        }
-        catch (NullPointerException e)
-        {
-            // All is well
-        }
+        new InitializationGate(null, null);
 
         try (Session session = new Session.Builder().build())
         {
@@ -119,7 +103,7 @@ public class InitializationGateTest
         {
             Assertions.assertFalse(session.isEnabled());
             InitializationGate ig = new InitializationGate(session);
-            final AtomicBoolean initialized = new AtomicBoolean();
+            final AtomicBoolean initialized = new AtomicBoolean(false);
             final InitializationGate.Initializer initializer = new InitializationGate.Initializer("1.0.0")
             {
                 @Override
@@ -130,15 +114,9 @@ public class InitializationGateTest
                 }
             };
 
-            try
-            {
-                ig.initialize(initializer);
-                Assertions.fail("Did not fail with a null session");
-            }
-            catch (IllegalStateException e)
-            {
-                // All is well
-            }
+            Assertions.assertFalse(initialized.get());
+            ig.initialize(initializer);
+            Assertions.assertTrue(initialized.get());
         }
 
         // Simple happy path
@@ -246,7 +224,7 @@ public class InitializationGateTest
         {
             Assertions.assertFalse(session.isEnabled());
             InitializationGate ig = new InitializationGate(session);
-            final AtomicBoolean initialized = new AtomicBoolean();
+            final AtomicBoolean initialized = new AtomicBoolean(false);
             final InitializationGate.Initializer initializer = new InitializationGate.Initializer("1.0.0")
             {
                 @Override
@@ -257,15 +235,9 @@ public class InitializationGateTest
                 }
             };
 
-            try
-            {
-                ig.initialize(initializer, Duration.of(10, ChronoUnit.SECONDS));
-                Assertions.fail("Did not fail with a null session");
-            }
-            catch (IllegalStateException e)
-            {
-                // All is well
-            }
+            Assertions.assertFalse(initialized.get());
+            ig.initialize(initializer, Duration.of(10, ChronoUnit.SECONDS));
+            Assertions.assertTrue(initialized.get());
         }
 
         // Simple happy path

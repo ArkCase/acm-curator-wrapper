@@ -85,25 +85,9 @@ public class MutexTest
     @Test
     public void testConstructor() throws Exception
     {
-        try
-        {
-            new Mutex(null);
-            Assertions.fail("Did not fail with a null session");
-        }
-        catch (NullPointerException e)
-        {
-            // All is well
-        }
+        new Mutex(null);
 
-        try
-        {
-            new Mutex(null, null);
-            Assertions.fail("Did not fail with a null session");
-        }
-        catch (NullPointerException e)
-        {
-            // All is well
-        }
+        new Mutex(null, null);
 
         try (Session session = new Session.Builder().build())
         {
@@ -120,10 +104,6 @@ public class MutexTest
             Assertions.assertFalse(session.isEnabled());
             Mutex m = new Mutex(session);
             try (AutoCloseable c = m.acquire())
-            {
-                Assertions.fail("Did not fail with a disabled session");
-            }
-            catch (IllegalStateException e)
             {
                 // All is well
             }
@@ -248,10 +228,6 @@ public class MutexTest
             Mutex m = new Mutex(session);
             try (AutoCloseable c = m.acquire(Duration.of(10, ChronoUnit.SECONDS)))
             {
-                Assertions.fail("Did not fail with a disabled session");
-            }
-            catch (IllegalStateException e)
-            {
                 // All is well
             }
         }
@@ -353,5 +329,19 @@ public class MutexTest
         endBarrier.await(this.acceptableWaitSecs, TimeUnit.SECONDS);
 
         Assertions.assertFalse(failed.get(), "An exception was raised by one of the threads");
+    }
+
+    @Test
+    public void testAcquireWithoutSession() throws Exception
+    {
+        try (Session session = new Session.Builder().build())
+        {
+            Assertions.assertFalse(session.isEnabled());
+            Mutex m = new Mutex(session);
+            try (AutoCloseable c = m.acquire(Duration.of(10, ChronoUnit.SECONDS)))
+            {
+                // Lock was acquired
+            }
+        }
     }
 }
