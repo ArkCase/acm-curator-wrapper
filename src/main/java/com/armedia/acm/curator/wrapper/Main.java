@@ -44,6 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
+import org.yaml.snakeyaml.env.EnvScalarConstructor;
 import org.yaml.snakeyaml.representer.Representer;
 
 import com.armedia.acm.curator.tools.SysPropEnvScalarConstructor;
@@ -202,7 +203,9 @@ public class Main
                     final Constructor constructor = new SysPropEnvScalarConstructor();
                     Representer representer = new Representer();
                     representer.getPropertyUtils().setSkipMissingProperties(true);
-                    cfg = new Yaml(constructor, representer).loadAs(r, Cfg.class);
+                    Yaml yaml = new Yaml(constructor, representer);
+                    yaml.addImplicitResolver(EnvScalarConstructor.ENV_TAG, EnvScalarConstructor.ENV_FORMAT, "$");
+                    cfg = yaml.loadAs(r, Cfg.class);
                 }
                 Main.LOG.trace("Configuration parsed");
             }
