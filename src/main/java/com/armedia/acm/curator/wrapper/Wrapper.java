@@ -197,6 +197,9 @@ public class Wrapper
             env.putAll(cfg.getEnv());
         }
 
+        // Indicate to the child process that it's inside the curator wrapper
+        env.put("CURATOR_WRAPPED", "true");
+
         this.log.info("Launching the wrapped command {}", pb.command());
         this.log.trace("Using the environment:\n{}", pb.environment());
 
