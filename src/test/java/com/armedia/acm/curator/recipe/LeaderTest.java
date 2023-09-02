@@ -85,25 +85,8 @@ public class LeaderTest
     @Test
     public void testConstructor() throws Exception
     {
-        try
-        {
-            new Leader(null);
-            Assertions.fail("Did not fail with a null session");
-        }
-        catch (NullPointerException e)
-        {
-            // All is well
-        }
-
-        try
-        {
-            new Leader(null, null);
-            Assertions.fail("Did not fail with a null session");
-        }
-        catch (NullPointerException e)
-        {
-            // All is well
-        }
+        new Leader(null);
+        new Leader(null, null);
 
         try (Session session = new Session.Builder().build())
         {
@@ -120,10 +103,6 @@ public class LeaderTest
             Assertions.assertFalse(session.isEnabled());
             Leader l = new Leader(session);
             try (AutoCloseable c = l.awaitLeadership())
-            {
-                Assertions.fail("Did not fail with a disabled session");
-            }
-            catch (IllegalStateException e)
             {
                 // All is well
             }
@@ -247,10 +226,6 @@ public class LeaderTest
             Assertions.assertFalse(session.isEnabled());
             Leader l = new Leader(session);
             try (AutoCloseable c = l.awaitLeadership(Duration.of(10, ChronoUnit.SECONDS)))
-            {
-                Assertions.fail("Did not fail with a disabled session");
-            }
-            catch (IllegalStateException e)
             {
                 // All is well
             }

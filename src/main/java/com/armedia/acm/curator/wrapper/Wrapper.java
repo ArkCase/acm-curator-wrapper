@@ -220,13 +220,6 @@ public class Wrapper
     {
         try (Session session = this.session.get())
         {
-            if (!session.isEnabled())
-            {
-                // Still not working our magic b/c we have no clustering configuration
-                this.log.info("Running in standalone mode");
-                return run(cmd);
-            }
-
             // This is the new, "clusterable" code path
             this.log.info("Running in clustered mode");
 

@@ -67,7 +67,22 @@ public class Leader extends Recipe
 
     private AutoCloseable execute(BooleanSupplier job, Duration maxWait) throws InterruptedException, TimeoutException
     {
-        this.session.assertEnabled();
+        if (!isSessionEnabled())
+        {
+            this.log.warn("The current session is not enabled, leadership will be granted automatically");
+            if (job == null)
+            {
+                return Tools::noop;
+            }
+
+            while (job.getAsBoolean())
+            {
+                // Do nothing ... the job will just run over and over and over
+                // b/c we're always the leader
+            }
+            return null;
+        }
+
         this.log.debug("Leadership node path: [{}]", this.path);
         if (maxWait == null)
         {
@@ -106,14 +121,14 @@ public class Leader extends Recipe
         };
 
         this.log.trace("Creating a new leadership selector");
-        final LeaderSelector selector = new LeaderSelector(this.session.getClient(), this.path, listener);
+        final LeaderSelector selector = new LeaderSelector(getClient(), this.path, listener);
         this.log.trace("Starting the leadership selector (# {})", this.cleanupKey);
         if (job != null)
         {
             selector.autoRequeue();
         }
         selector.start();
-        this.cleanupKey.set(this.session.addCleanup(selector));
+        this.cleanupKey.set(addCleanup(selector));
 
         AutoCloseable close = () -> {
             this.log.info("Processing completed, relinquishing leadership (selector # {})", this.cleanupKey.get());
@@ -128,7 +143,7 @@ public class Leader extends Recipe
             }
             finally
             {
-                this.session.removeCleanup(this.cleanupKey.getAndSet(null));
+                removeCleanup(this.cleanupKey.getAndSet(null));
             }
         };
 

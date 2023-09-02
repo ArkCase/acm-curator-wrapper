@@ -85,25 +85,8 @@ public class ReadWriteLockTest
     @Test
     public void testConstructor() throws Exception
     {
-        try
-        {
-            new ReadWriteLock(null);
-            Assertions.fail("Did not fail with a null session");
-        }
-        catch (NullPointerException e)
-        {
-            // All is well
-        }
-
-        try
-        {
-            new ReadWriteLock(null, null);
-            Assertions.fail("Did not fail with a null session");
-        }
-        catch (NullPointerException e)
-        {
-            // All is well
-        }
+        new ReadWriteLock(null);
+        new ReadWriteLock(null, null);
 
         try (Session session = new Session.Builder().build())
         {
@@ -120,10 +103,6 @@ public class ReadWriteLockTest
             Assertions.assertFalse(session.isEnabled());
             ReadWriteLock rw = new ReadWriteLock(session);
             try (AutoCloseable c = rw.write())
-            {
-                Assertions.fail("Did not fail with a disabled session");
-            }
-            catch (IllegalStateException e)
             {
                 // All is well
             }
@@ -249,10 +228,6 @@ public class ReadWriteLockTest
             ReadWriteLock rw = new ReadWriteLock(session);
             try (AutoCloseable c = rw.write(Duration.of(10, ChronoUnit.SECONDS)))
             {
-                Assertions.fail("Did not fail with a disabled session");
-            }
-            catch (IllegalStateException e)
-            {
                 // All is well
             }
         }
@@ -364,10 +339,6 @@ public class ReadWriteLockTest
             Assertions.assertFalse(session.isEnabled());
             ReadWriteLock rw = new ReadWriteLock(session);
             try (AutoCloseable c = rw.read())
-            {
-                Assertions.fail("Did not fail with a disabled session");
-            }
-            catch (IllegalStateException e)
             {
                 // All is well
             }
@@ -506,10 +477,6 @@ public class ReadWriteLockTest
             ReadWriteLock rw = new ReadWriteLock(session);
             try (AutoCloseable c = rw.read(Duration.of(10, ChronoUnit.SECONDS)))
             {
-                Assertions.fail("Did not fail with a disabled session");
-            }
-            catch (IllegalStateException e)
-            {
                 // All is well
             }
         }
@@ -616,6 +583,20 @@ public class ReadWriteLockTest
     @Test
     public void testUpgrade() throws Exception
     {
+        // With an empty session
+        try (Session session = new Session.Builder().build())
+        {
+            Assertions.assertFalse(session.isEnabled());
+            ReadWriteLock rw = new ReadWriteLock(session);
+            try (ReadWriteLock.Read r = rw.read(Duration.of(10, ChronoUnit.SECONDS)))
+            {
+                try (ReadWriteLock.Write w = r.upgrade(Duration.of(100, ChronoUnit.MILLIS)))
+                {
+                    // Lock was upgraded ...
+                }
+            }
+        }
+
         // Simple happy path
         try (Session session = new Session.Builder().connect(ReadWriteLockTest.SERVER.getConnectString()).build())
         {

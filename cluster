@@ -1,0 +1,4 @@
+#!/bin/bash
+set -x
+exec java \
+	-jar target/curator-wrapper-*-exe.jar

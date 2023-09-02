@@ -50,8 +50,15 @@ public class ReadWriteLock extends Recipe
 
         private Read(Duration maxWait) throws Exception
         {
-            ReadWriteLock.this.session.assertEnabled();
-            this.rwLock = new InterProcessReadWriteLock(ReadWriteLock.this.session.getClient(), ReadWriteLock.this.path);
+            if (!isSessionEnabled())
+            {
+                ReadWriteLock.this.log.debug("The current session is not enabled - read locking functionality is not available");
+                this.lock = null;
+                this.rwLock = null;
+                return;
+            }
+
+            this.rwLock = new InterProcessReadWriteLock(getClient(), ReadWriteLock.this.path);
 
             this.lock = this.rwLock.readLock();
             if ((maxWait != null) && !maxWait.isNegative() && !maxWait.isZero())
@@ -87,7 +94,10 @@ public class ReadWriteLock extends Recipe
         public void close() throws Exception
         {
             ReadWriteLock.this.log.trace("Releasing the read lock at [{}]", ReadWriteLock.this.path);
-            this.lock.release();
+            if (this.lock != null)
+            {
+                this.lock.release();
+            }
         }
     }
 
@@ -104,11 +114,19 @@ public class ReadWriteLock extends Recipe
 
         private Write(Duration maxWait, Read read) throws Exception
         {
+            if (!isSessionEnabled())
+            {
+                ReadWriteLock.this.log.debug("The current session is not enabled - write locking functionality is not available");
+                this.rwLock = null;
+                this.lock = null;
+                this.read = null;
+                return;
+            }
+
             this.read = read;
-            ReadWriteLock.this.session.assertEnabled();
             this.rwLock = (read != null //
                     ? read.rwLock //
-                    : new InterProcessReadWriteLock(ReadWriteLock.this.session.getClient(),
+                    : new InterProcessReadWriteLock(getClient(),
                             ReadWriteLock.this.path) //
             );
 
@@ -140,7 +158,10 @@ public class ReadWriteLock extends Recipe
                 this.read.lock.acquire();
             }
             ReadWriteLock.this.log.trace("Releasing the write lock at [{}]", ReadWriteLock.this.path);
-            this.lock.release();
+            if (this.lock != null)
+            {
+                this.lock.release();
+            }
         }
     }
 
