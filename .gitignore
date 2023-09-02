@@ -2,7 +2,11 @@ target
 !.mvn/wrapper/maven-wrapper.jar
 logs
 *.orig
-.*.swp
+*.rej
+.*.sw?
+**/.*.sw?
+.sw?
+**/.sw?
 
 ### STS ###
 .apt_generated
