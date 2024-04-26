@@ -37,7 +37,7 @@ import java.time.Instant;
 import java.util.Arrays;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.slf4j.Logger;
@@ -136,7 +136,7 @@ public class Main
         Main.LOG.trace("Parsing the command line: {}", Arrays.toString(args));
         try
         {
-            CommandLine cmdLine = new GnuParser().parse(Main.OPTIONS, args);
+            CommandLine cmdLine = new DefaultParser().parse(Main.OPTIONS, args);
 
             if (cmdLine.hasOption('h'))
             {
