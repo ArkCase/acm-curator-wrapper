@@ -55,12 +55,12 @@
 		<snapshotRepository>
 			<id>arkcase.snapshot</id>
 			<name>ArkCase Snapshots</name>
-			<url>https://project.armedia.com/nexus/content/repositories/arkcase.snapshot/</url>
+			<url>https://nexus.armedia.com/content/repositories/arkcase.snapshot/</url>
 		</snapshotRepository>
 		<repository>
 			<id>arkcase.release</id>
 			<name>ArkCase Release</name>
-			<url>https://project.armedia.com/nexus/content/repositories/arkcase.release/</url>
+			<url>https://nexus.armedia.com/content/repositories/arkcase.release/</url>
 		</repository>
 	</distributionManagement>
 
@@ -71,7 +71,7 @@
 			<snapshots>
 				<enabled>true</enabled>
 			</snapshots>
-			<url>https://project.armedia.com/nexus/content/repositories/arkcase/</url>
+			<url>https://nexus.armedia.com/content/repositories/arkcase/</url>
 		</repository>
 	</repositories>
 
@@ -82,7 +82,7 @@
 			<snapshots>
 				<enabled>true</enabled>
 			</snapshots>
-			<url>https://project.armedia.com/nexus/content/repositories/arkcase/</url>
+			<url>https://nexus.armedia.com/content/repositories/arkcase/</url>
 		</pluginRepository>
 	</pluginRepositories>
 
