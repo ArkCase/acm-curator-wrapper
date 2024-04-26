@@ -42,6 +42,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.env.EnvScalarConstructor;
@@ -201,7 +202,7 @@ public class Main
                 try (Reader r = cfgReader)
                 {
                     final Constructor constructor = new SysPropEnvScalarConstructor();
-                    Representer representer = new Representer();
+                    Representer representer = new Representer(new DumperOptions());
                     representer.getPropertyUtils().setSkipMissingProperties(true);
                     Yaml yaml = new Yaml(constructor, representer);
                     yaml.addImplicitResolver(EnvScalarConstructor.ENV_TAG, EnvScalarConstructor.ENV_FORMAT, "$");
