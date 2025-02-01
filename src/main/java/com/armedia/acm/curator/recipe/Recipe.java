@@ -27,8 +27,12 @@
 package com.armedia.acm.curator.recipe;
 
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.commons.lang3.function.FailableConsumer;
 import org.apache.curator.framework.CuratorFramework;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.armedia.acm.curator.Session;
 import com.armedia.acm.curator.tools.Tools;
@@ -45,6 +49,42 @@ public class Recipe
         return name;
     }
 
+    protected class ItemCloser<T> implements AutoCloseable
+    {
+        final Object cleanupKey;
+        final T item;
+        final FailableConsumer<T, Exception> closer;
+        final String label;
+        final AtomicBoolean closed = new AtomicBoolean(false);
+
+        protected ItemCloser(T item, FailableConsumer<T, Exception> closer)
+        {
+            this.cleanupKey = addCleanup(this);
+            Recipe.this.log.trace("Cleanup key is [{}]", this.cleanupKey);
+            this.item = item;
+            this.closer = closer;
+            this.label = item.getClass().getSimpleName();
+        }
+
+        @Override
+        public void close() throws Exception
+        {
+            if (this.closed.compareAndSet(false, true))
+            {
+                try
+                {
+                    Recipe.this.log.trace("Releasing the {} at [{}]", this.label, Recipe.this.path);
+                    this.closer.accept(this.item);
+                }
+                finally
+                {
+                    removeCleanup(this.cleanupKey);
+                }
+            }
+        }
+    }
+
+    protected final Logger log = LoggerFactory.getLogger(getClass());
     private final Session session;
     protected final String name;
     protected final String path;
@@ -57,7 +97,7 @@ public class Recipe
     protected Recipe(Session session, String name)
     {
         this.session = session;
-        String root = String.format("%s/%s", (session != null ? session.getBasePath() : "/arkcase"),
+        String root = String.format("%s/%s", (session != null ? session.getBasePath() : Session.DEFAULT_BASE_PATH),
                 getClass().getSimpleName().toLowerCase());
         if (Tools.isEmpty(name))
         {

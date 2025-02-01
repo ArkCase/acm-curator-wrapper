@@ -31,8 +31,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.armedia.acm.curator.Session;
 import com.armedia.acm.curator.tools.Tools;
@@ -40,34 +38,6 @@ import com.armedia.acm.curator.tools.Tools;
 public class Mutex extends Recipe
 {
     public static final String DEFAULT_NAME = "default";
-    private final Logger log = LoggerFactory.getLogger(getClass());
-
-    private class Closer implements AutoCloseable
-    {
-        final Object cleanupKey;
-        final InterProcessMutex lock;
-
-        private Closer(InterProcessMutex lock)
-        {
-            this.cleanupKey = addCleanup(this);
-            Mutex.this.log.trace("Cleanup key is [{}]", this.cleanupKey);
-            this.lock = lock;
-        }
-
-        @Override
-        public void close() throws Exception
-        {
-            try
-            {
-                Mutex.this.log.trace("Releasing the lock at [{}]", Mutex.this.path);
-                this.lock.release();
-            }
-            finally
-            {
-                removeCleanup(this.cleanupKey);
-            }
-        }
-    }
 
     public Mutex(Session session)
     {
@@ -108,6 +78,6 @@ public class Mutex extends Recipe
         }
 
         this.log.trace("Acquired the lock at [{}]", this.path);
-        return new Closer(lock);
+        return new ItemCloser<>(lock, InterProcessMutex::release);
     }
 }

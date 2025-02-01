@@ -26,8 +26,14 @@
  */
 package com.armedia.acm.curator.tools;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.function.Supplier;
 
 public class Tools
@@ -147,5 +153,30 @@ public class Tools
     public static void noop()
     {
         // DO nothing
+    }
+
+    public static byte[] serialize(Serializable value) throws IOException
+    {
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream())
+        {
+            try (ObjectOutputStream oos = new ObjectOutputStream(out))
+            {
+                oos.writeObject(value);
+                oos.flush();
+            }
+            out.flush();
+            return out.toByteArray();
+        }
+    }
+
+    public static Serializable deserialize(byte[] data) throws IOException, ClassNotFoundException
+    {
+        try (InputStream in = new ByteArrayInputStream(data))
+        {
+            try (ObjectInputStream ois = new ObjectInputStream(in))
+            {
+                return Serializable.class.cast(ois.readObject());
+            }
+        }
     }
 }

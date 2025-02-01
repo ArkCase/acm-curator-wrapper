@@ -37,13 +37,11 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
 
+import org.apache.commons.lang3.function.FailableBiFunction;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.zookeeper.KeeperException.NoNodeException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.armedia.acm.curator.Session;
-import com.armedia.acm.curator.tools.CheckedBiFunction;
 
 public class InitializationGate extends Recipe
 {
@@ -66,9 +64,10 @@ public class InitializationGate extends Recipe
 
     public static class FunctionalInitializer extends Initializer
     {
-        private final CheckedBiFunction<String, Map<String, String>, Map<String, String>> initializer;
+        private final FailableBiFunction<String, Map<String, String>, Map<String, String>, Exception> initializer;
 
-        public FunctionalInitializer(String version, CheckedBiFunction<String, Map<String, String>, Map<String, String>> initializer)
+        public FunctionalInitializer(String version,
+                FailableBiFunction<String, Map<String, String>, Map<String, String>, Exception> initializer)
         {
             super(version);
             this.initializer = initializer;
@@ -78,7 +77,7 @@ public class InitializationGate extends Recipe
         public final Map<String, String> initialize(String current, Map<String, String> extraData) throws Exception
         {
             return (this.initializer != null) //
-                    ? this.initializer.applyChecked(current, extraData) //
+                    ? this.initializer.apply(current, extraData) //
                     : null //
             ;
         }
@@ -216,8 +215,6 @@ public class InitializationGate extends Recipe
         }
         return buf.toString();
     }
-
-    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final Mutex mutex;
 

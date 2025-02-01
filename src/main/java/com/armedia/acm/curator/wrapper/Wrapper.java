@@ -37,6 +37,7 @@ import java.util.Objects;
 import java.util.StringTokenizer;
 import java.util.function.Consumer;
 
+import org.apache.commons.lang3.function.FailableSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +47,6 @@ import com.armedia.acm.curator.recipe.InitializationGate.FunctionalInitializer;
 import com.armedia.acm.curator.recipe.InitializationGate.Initializer;
 import com.armedia.acm.curator.recipe.Leader;
 import com.armedia.acm.curator.recipe.Mutex;
-import com.armedia.acm.curator.tools.CheckedSupplier;
 import com.armedia.acm.curator.tools.Tools;
 import com.armedia.acm.curator.wrapper.conf.ExecCfg;
 import com.armedia.acm.curator.wrapper.conf.OperationMode;
@@ -59,9 +59,9 @@ public class Wrapper
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final WrapperCfg cfg;
-    private final CheckedSupplier<Session> session;
+    private final FailableSupplier<Session, Exception> session;
 
-    public Wrapper(CheckedSupplier<Session> session, WrapperCfg cfg)
+    public Wrapper(FailableSupplier<Session, Exception> session, WrapperCfg cfg)
     {
         this.session = Objects.requireNonNull(session, "Must provide a non-null Session supplier");
         this.cfg = Tools.ifNull(cfg, WrapperCfg::new);

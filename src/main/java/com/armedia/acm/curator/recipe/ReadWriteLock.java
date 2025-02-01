@@ -33,15 +33,12 @@ import java.util.concurrent.TimeoutException;
 import org.apache.curator.framework.recipes.locks.InterProcessReadWriteLock;
 import org.apache.curator.framework.recipes.locks.InterProcessReadWriteLock.ReadLock;
 import org.apache.curator.framework.recipes.locks.InterProcessReadWriteLock.WriteLock;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.armedia.acm.curator.Session;
 
 public class ReadWriteLock extends Recipe
 {
     public static final String DEFAULT_NAME = "default";
-    private final Logger log = LoggerFactory.getLogger(getClass());
 
     public class Read implements AutoCloseable
     {

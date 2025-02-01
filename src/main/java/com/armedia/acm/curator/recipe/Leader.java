@@ -40,8 +40,6 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.leader.LeaderSelector;
 import org.apache.curator.framework.recipes.leader.LeaderSelectorListener;
 import org.apache.curator.framework.recipes.leader.LeaderSelectorListenerAdapter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.armedia.acm.curator.Session;
 import com.armedia.acm.curator.tools.Tools;
@@ -52,7 +50,6 @@ public class Leader extends Recipe
 
     public static final String DEFAULT_NAME = "default";
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
     private final AtomicReference<Object> cleanupKey = new AtomicReference<>();
 
     public Leader(Session session)
