@@ -56,7 +56,7 @@ public class EphemeralValue extends Recipe
         super(session, name);
     }
 
-    public boolean exists()
+    public boolean exists() throws Exception
     {
         if (!isSessionEnabled())
         {
@@ -64,8 +64,7 @@ public class EphemeralValue extends Recipe
             return false;
         }
 
-        // TODO: Check
-        return true;
+        return (getClient().checkExists().forPath(this.path) != null);
     }
 
     public AutoCloseable set(Serializable value) throws Exception
