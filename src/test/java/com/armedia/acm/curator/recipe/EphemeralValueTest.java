@@ -163,7 +163,7 @@ public class EphemeralValueTest
         try (Session session = new Session.Builder().connect(EphemeralValueTest.SERVER.getConnectString()).build())
         {
             Assertions.assertTrue(session.isEnabled());
-            final Serializable value = UUID.randomUUID().toString();
+            final Serializable value = UUID.randomUUID();
             EphemeralValue ev = new EphemeralValue(session, value.toString());
 
             // Fire off the waiter thread
@@ -204,7 +204,7 @@ public class EphemeralValueTest
         try (Session session = new Session.Builder().connect(EphemeralValueTest.SERVER.getConnectString()).build())
         {
             Assertions.assertTrue(session.isEnabled());
-            final Serializable value = UUID.randomUUID().toString();
+            final Serializable value = UUID.randomUUID();
             EphemeralValue ev = new EphemeralValue(session, value.toString());
 
             // Fire off the waiter thread
@@ -233,6 +233,183 @@ public class EphemeralValueTest
             {
                 // Verify that the node exists and has the expected value
                 Assertions.assertEquals(value, ev.get());
+            }
+
+            Exception e = thrown.get();
+            Assertions.assertNotNull(e);
+            Assertions.assertEquals(TimeoutException.class, e.getClass());
+        }
+    }
+
+    @Test
+    public void testAwaitDelete() throws Exception
+    {
+        // Simple happy path
+        try (Session session = new Session.Builder().connect(EphemeralValueTest.SERVER.getConnectString()).build())
+        {
+            Assertions.assertTrue(session.isEnabled());
+            final Serializable value = UUID.randomUUID();
+            EphemeralValue ev = new EphemeralValue(session, value.toString());
+
+            // Fire off the waiter thread
+            final CyclicBarrier barrier = new CyclicBarrier(2);
+            final AtomicReference<Exception> thrown = new AtomicReference<>(null);
+            final Thread thread = new Thread(() -> {
+                try
+                {
+                    barrier.await();
+                    ev.awaitDeletion();
+                }
+                catch (Exception e)
+                {
+                    thrown.set(e);
+                }
+            }, "test-await-create");
+
+            thread.start();
+            barrier.await();
+
+            try (AutoCloseable c = ev.set(value))
+            {
+                // Verify that the node exists and has the expected value
+                Assertions.assertEquals(value, ev.get());
+
+                // We have to wait a little bit longer
+                Thread.sleep(1000);
+            }
+
+            Exception e = thrown.get();
+            if (e != null)
+            {
+                throw e;
+            }
+        }
+
+        // Wait for between 1000 and 3000 millis, and timeout
+        try (Session session = new Session.Builder().connect(EphemeralValueTest.SERVER.getConnectString()).build())
+        {
+            Assertions.assertTrue(session.isEnabled());
+            final Serializable value = UUID.randomUUID();
+            EphemeralValue ev = new EphemeralValue(session, value.toString());
+
+            // Fire off the waiter thread
+            final long millis = (EphemeralValueTest.RANDOM.nextInt(2001) + 1000);
+            final CyclicBarrier barrier = new CyclicBarrier(2);
+            final AtomicReference<Exception> thrown = new AtomicReference<>(null);
+            final Thread thread = new Thread(() -> {
+                try
+                {
+                    barrier.await();
+                    ev.awaitDeletion(millis, TimeUnit.MILLISECONDS);
+                }
+                catch (Exception e)
+                {
+                    thrown.set(e);
+                }
+            }, "test-await-create");
+
+            thread.start();
+            barrier.await();
+
+            try (AutoCloseable c = ev.set(value))
+            {
+                // Verify that the node exists and has the expected value
+                Assertions.assertEquals(value, ev.get());
+
+                // We have to wait a little bit longer
+                Thread.sleep(4000);
+            }
+
+            Exception e = thrown.get();
+            Assertions.assertNotNull(e);
+            Assertions.assertEquals(TimeoutException.class, e.getClass());
+        }
+    }
+
+    @Test
+    public void testAwaitUpdate() throws Exception
+    {
+        // Simple happy path
+        try (Session session = new Session.Builder().connect(EphemeralValueTest.SERVER.getConnectString()).build())
+        {
+            Assertions.assertTrue(session.isEnabled());
+            final Serializable firstValue = UUID.randomUUID();
+            final Serializable secondValue = UUID.randomUUID();
+            EphemeralValue ev = new EphemeralValue(session, firstValue.toString());
+
+            // Fire off the waiter thread
+            final CyclicBarrier barrier = new CyclicBarrier(2);
+            final AtomicReference<Exception> thrown = new AtomicReference<>(null);
+            final Thread thread = new Thread(() -> {
+                try
+                {
+                    barrier.await();
+                    Assertions.assertEquals(secondValue, ev.awaitUpdate());
+                }
+                catch (Exception e)
+                {
+                    thrown.set(e);
+                }
+            }, "test-await-create");
+
+            thread.start();
+            barrier.await();
+
+            try (AutoCloseable c = ev.set(firstValue))
+            {
+                // Verify that the node exists and has the expected value
+                Assertions.assertEquals(firstValue, ev.get());
+
+                // We have to wait a little bit longer
+                Thread.sleep(1000);
+
+                ev.set(secondValue);
+
+                // Verify that the node exists and has the expected value
+                Assertions.assertEquals(secondValue, ev.get());
+            }
+
+            Exception e = thrown.get();
+            if (e != null)
+            {
+                throw e;
+            }
+        }
+
+        // Wait for between 1000 and 3000 millis, and timeout
+        try (Session session = new Session.Builder().connect(EphemeralValueTest.SERVER.getConnectString()).build())
+        {
+            Assertions.assertTrue(session.isEnabled());
+            final Serializable firstValue = UUID.randomUUID();
+            final Serializable secondValue = UUID.randomUUID();
+            EphemeralValue ev = new EphemeralValue(session, firstValue.toString());
+
+            // Fire off the waiter thread
+            final long millis = (EphemeralValueTest.RANDOM.nextInt(2001) + 1000);
+            final CyclicBarrier barrier = new CyclicBarrier(2);
+            final AtomicReference<Exception> thrown = new AtomicReference<>(null);
+            final Thread thread = new Thread(() -> {
+                try
+                {
+                    barrier.await();
+                    ev.awaitDeletion(millis, TimeUnit.MILLISECONDS);
+                }
+                catch (Exception e)
+                {
+                    thrown.set(e);
+                }
+            }, "test-await-create");
+
+            thread.start();
+            barrier.await();
+
+            try (AutoCloseable c = ev.set(firstValue))
+            {
+                // Verify that the node exists and has the expected value
+                Assertions.assertEquals(firstValue, ev.get());
+
+                // We have to wait a little bit longer
+                Thread.sleep(4000);
             }
 
             Exception e = thrown.get();
