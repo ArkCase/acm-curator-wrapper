@@ -32,17 +32,17 @@ import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.curator.framework.listen.Listenable;
-import org.apache.curator.framework.recipes.nodes.PersistentNode;
 import org.apache.curator.framework.recipes.watch.PersistentWatcher;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException.NoNodeException;
+import org.apache.zookeeper.KeeperException.NodeExistsException;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.EventType;
 
 import com.armedia.acm.curator.Session;
 import com.armedia.acm.curator.tools.Tools;
 
-public class EphemeralValue extends Recipe
+public class EphemeralValue extends Recipe implements AutoCloseable
 {
     public static final String DEFAULT_NAME = "default";
 
@@ -69,11 +69,6 @@ public class EphemeralValue extends Recipe
 
     public AutoCloseable set(Serializable value) throws Exception
     {
-        return set(value, -1, null);
-    }
-
-    public AutoCloseable set(Serializable value, long wait, TimeUnit unit) throws Exception
-    {
         if (!isSessionEnabled())
         {
             this.log.debug("The current session is not enabled, the value does not exist");
@@ -81,18 +76,26 @@ public class EphemeralValue extends Recipe
         }
 
         final byte[] data = Tools.serialize(value);
-        final PersistentNode node = new PersistentNode(getClient(), CreateMode.EPHEMERAL, false, this.path, data, true);
-
-        this.log.debug("Set the ephemeral value at [{}] ({} bytes)", this.path, data.length);
-        node.start();
-
-        if ((wait < 0) || (unit == null))
+        this.log.trace("Setting the ephemeral value at [{}] ({} bytes)", this.path, data.length);
+        try
         {
-            wait = Long.MAX_VALUE;
-            unit = TimeUnit.DAYS;
+            getClient()
+                    .create()
+                    .idempotent()
+                    .creatingParentContainersIfNeeded()
+                    .withMode(CreateMode.EPHEMERAL)
+                    .forPath(this.path, data);
         }
-        node.waitForInitialCreate(wait, unit);
-        return new ItemCloser<>(node, AutoCloseable::close);
+        catch (NodeExistsException e)
+        {
+            getClient()
+                    .setData()
+                    .idempotent()
+                    .forPath(this.path, data);
+        }
+        this.log.debug("Set the ephemeral value at [{}] ({} bytes)", this.path, data.length);
+        final AutoCloseable delete = () -> delete();
+        return new ItemCloser<>(delete, AutoCloseable::close);
     }
 
     public Serializable get() throws Exception
@@ -111,6 +114,16 @@ public class EphemeralValue extends Recipe
         {
             return null;
         }
+    }
+
+    public void delete() throws Exception
+    {
+        getClient()
+                .delete()
+                .idempotent()
+                .guaranteed()
+                .deletingChildrenIfNeeded()
+                .forPath(this.path);
     }
 
     protected Serializable await(final EventType eventType, boolean retrieve, long wait, TimeUnit unit) throws Exception
@@ -194,5 +207,11 @@ public class EphemeralValue extends Recipe
     public void awaitDeletion(long wait, TimeUnit unit) throws Exception
     {
         await(EventType.NodeDeleted, false, wait, unit);
+    }
+
+    @Override
+    public void close() throws Exception
+    {
+        delete();
     }
 }
