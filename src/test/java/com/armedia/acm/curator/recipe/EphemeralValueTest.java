@@ -80,6 +80,7 @@ public class EphemeralValueTest
     final Logger log = LoggerFactory.getLogger(getClass());
 
     @Test
+    @SuppressWarnings("resource")
     public void testConstructor() throws Exception
     {
         new EphemeralValue(null);
@@ -99,6 +100,7 @@ public class EphemeralValueTest
         {
             Assertions.assertFalse(session.isEnabled());
             Serializable value = UUID.randomUUID();
+            @SuppressWarnings("resource")
             EphemeralValue ev = new EphemeralValue(session, value.toString());
             try (AutoCloseable c = ev.set(value))
             {
@@ -111,6 +113,7 @@ public class EphemeralValueTest
         {
             Assertions.assertTrue(session.isEnabled());
             Serializable value = UUID.randomUUID();
+            @SuppressWarnings("resource")
             EphemeralValue ev = new EphemeralValue(session, value.toString());
             try (AutoCloseable c = ev.set(value))
             {
@@ -123,6 +126,7 @@ public class EphemeralValueTest
         {
             Assertions.assertTrue(session.isEnabled());
             Serializable value = UUID.randomUUID();
+            @SuppressWarnings("resource")
             EphemeralValue ev = new EphemeralValue(session, value.toString());
 
             // Make sure it doesn't exist yet
@@ -147,6 +151,7 @@ public class EphemeralValueTest
         {
             Assertions.assertTrue(session.isEnabled());
             Serializable value = UUID.randomUUID();
+            @SuppressWarnings("resource")
             EphemeralValue ev = new EphemeralValue(session, value.toString());
             try (AutoCloseable c = ev.set(value))
             {
@@ -164,6 +169,7 @@ public class EphemeralValueTest
         {
             Assertions.assertTrue(session.isEnabled());
             final Serializable value = UUID.randomUUID();
+            @SuppressWarnings("resource")
             EphemeralValue ev = new EphemeralValue(session, value.toString());
 
             // Fire off the waiter thread
@@ -205,6 +211,7 @@ public class EphemeralValueTest
         {
             Assertions.assertTrue(session.isEnabled());
             final Serializable value = UUID.randomUUID();
+            @SuppressWarnings("resource")
             EphemeralValue ev = new EphemeralValue(session, value.toString());
 
             // Fire off the waiter thread
@@ -249,6 +256,7 @@ public class EphemeralValueTest
         {
             Assertions.assertTrue(session.isEnabled());
             final Serializable value = UUID.randomUUID();
+            @SuppressWarnings("resource")
             EphemeralValue ev = new EphemeralValue(session, value.toString());
 
             // Fire off the waiter thread
@@ -290,6 +298,7 @@ public class EphemeralValueTest
         {
             Assertions.assertTrue(session.isEnabled());
             final Serializable value = UUID.randomUUID();
+            @SuppressWarnings("resource")
             EphemeralValue ev = new EphemeralValue(session, value.toString());
 
             // Fire off the waiter thread
@@ -335,6 +344,7 @@ public class EphemeralValueTest
             Assertions.assertTrue(session.isEnabled());
             final Serializable firstValue = UUID.randomUUID();
             final Serializable secondValue = UUID.randomUUID();
+            @SuppressWarnings("resource")
             EphemeralValue ev = new EphemeralValue(session, firstValue.toString());
 
             // Fire off the waiter thread
@@ -381,7 +391,7 @@ public class EphemeralValueTest
         {
             Assertions.assertTrue(session.isEnabled());
             final Serializable firstValue = UUID.randomUUID();
-            final Serializable secondValue = UUID.randomUUID();
+            @SuppressWarnings("resource")
             EphemeralValue ev = new EphemeralValue(session, firstValue.toString());
 
             // Fire off the waiter thread

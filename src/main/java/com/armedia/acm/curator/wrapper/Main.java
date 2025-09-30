@@ -27,6 +27,7 @@
 package com.armedia.acm.curator.wrapper;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
@@ -38,8 +39,8 @@ import java.util.Arrays;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
+import org.apache.commons.cli.help.HelpFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.DumperOptions;
@@ -204,7 +205,7 @@ public class Main
                     final Constructor constructor = new SysPropEnvScalarConstructor();
                     Representer representer = new Representer(new DumperOptions());
                     representer.getPropertyUtils().setSkipMissingProperties(true);
-                    Yaml yaml = new Yaml(constructor, representer);
+                    Yaml yaml = new Yaml(constructor, representer, new DumperOptions());
                     yaml.addImplicitResolver(EnvScalarConstructor.ENV_TAG, EnvScalarConstructor.ENV_FORMAT, "$");
                     cfg = yaml.loadAs(r, Cfg.class);
                 }
@@ -228,9 +229,9 @@ public class Main
         }
     }
 
-    private static void usage()
+    private static void usage() throws IOException
     {
-        new HelpFormatter().printHelp("wrapper", Main.OPTIONS, true);
+        HelpFormatter.builder().get().printHelp("wrapper", "A simple Curator API Wrapper", Main.OPTIONS, "", false);
     }
 
     public static void main(String... args) throws Exception
