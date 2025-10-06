@@ -37,16 +37,20 @@ import java.util.Objects;
 import java.util.StringTokenizer;
 import java.util.function.Consumer;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.function.FailableSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.armedia.acm.curator.Session;
+import com.armedia.acm.curator.recipe.Download;
+import com.armedia.acm.curator.recipe.Exists;
 import com.armedia.acm.curator.recipe.InitializationGate;
 import com.armedia.acm.curator.recipe.InitializationGate.FunctionalInitializer;
 import com.armedia.acm.curator.recipe.InitializationGate.Initializer;
 import com.armedia.acm.curator.recipe.Leader;
 import com.armedia.acm.curator.recipe.Mutex;
+import com.armedia.acm.curator.recipe.Upload;
 import com.armedia.acm.curator.tools.Tools;
 import com.armedia.acm.curator.wrapper.conf.ExecCfg;
 import com.armedia.acm.curator.wrapper.conf.OperationMode;
@@ -150,11 +154,11 @@ public class Wrapper
         }
 
         final List<String> cmd;
-        if (Collection.class.isInstance(command))
+        if ((command instanceof Collection))
         {
             Collection<?> c = Collection.class.cast(command);
             cmd = new ArrayList<>(c.size());
-            c.forEach((v) -> cmd.add(String.valueOf(v)));
+            c.forEach(v -> cmd.add(String.valueOf(v)));
         }
         else if (command.getClass().isArray())
         {
@@ -286,6 +290,25 @@ public class Wrapper
                             info.getVersion(), info.getStarted());
                 }
                 return 0;
+
+            case download:
+                String target = getParameter("tgt");
+                if (StringUtils.isBlank(target))
+                {
+                    target = getParameter("target");
+                }
+                return new Download(session, this.cfg.getName()).execute(target, getParameter("recursive"));
+
+            case upload:
+                String source = getParameter("src");
+                if (StringUtils.isBlank(source))
+                {
+                    source = getParameter("source");
+                }
+                return new Upload(session, this.cfg.getName()).execute(source, getParameter("recursive"));
+
+            case exists:
+                return new Exists(session, this.cfg.getName()).execute();
 
             default:
                 this.log.info("No algorithm for wrapper type {}", this.cfg.getMode());

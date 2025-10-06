@@ -33,6 +33,9 @@ public enum OperationMode
     leader, //
     mutex, //
     init, //
+    download, //
+    upload, //
+    exists, //
     // barrier, //
     //
     ;
