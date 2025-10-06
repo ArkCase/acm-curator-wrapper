@@ -14,7 +14,7 @@
 	<inceptionYear>2023</inceptionYear>
 
 	<properties>
-		<revision>1.7.1-SNAPSHOT</revision>
+		<revision>1.8.0-SNAPSHOT</revision>
 		<maven.min-version>3.8.6</maven.min-version>
 		<java.version>11</java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
