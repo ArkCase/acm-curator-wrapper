@@ -42,6 +42,7 @@ public class WrapperCfg
     private long timeout = 0;
     private Map<String, ?> param = new LinkedHashMap<>();
     private ExecCfg exec = new ExecCfg();
+    private ExecCfg check = new ExecCfg();
 
     public OperationMode getMode()
     {
@@ -95,6 +96,17 @@ public class WrapperCfg
     public WrapperCfg setExec(ExecCfg exec)
     {
         this.exec = Tools.ifNull(exec, ExecCfg::new);
+        return this;
+    }
+
+    public ExecCfg getCheck()
+    {
+        return this.check;
+    }
+
+    public WrapperCfg setCheck(ExecCfg check)
+    {
+        this.check = Tools.ifNull(check, ExecCfg::new);
         return this;
     }
 }
