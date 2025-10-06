@@ -36,11 +36,19 @@ import java.nio.file.Files;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.help.HelpFormatter;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.DumperOptions;
@@ -51,6 +59,8 @@ import org.yaml.snakeyaml.representer.Representer;
 
 import com.armedia.acm.curator.tools.SysPropEnvScalarConstructor;
 import com.armedia.acm.curator.tools.Tools;
+import com.armedia.acm.curator.wrapper.conf.ExecCfg;
+import com.armedia.acm.curator.wrapper.conf.OperationMode;
 import com.armedia.acm.curator.wrapper.conf.SessionCfg;
 import com.armedia.acm.curator.wrapper.conf.WrapperCfg;
 
@@ -59,6 +69,11 @@ public class Main
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
     private static final String CONF_SYSPROP = "arkcase.curator.wrapper.conf";
     private static final String CONF_ENVVAR = Main.CONF_SYSPROP.replace('.', '_').toUpperCase();
+    private static final Set<String> OPERATION_NAMES = Collections.unmodifiableSet(EnumSet
+            .allOf(OperationMode.class)
+            .stream()
+            .map(OperationMode::name)
+            .collect(Collectors.toSet()));
     private static final File DEFAULT_CONFIG;
     static
     {
@@ -101,9 +116,59 @@ public class Main
     }
 
     private static final Options OPTIONS = new Options() //
-            .addOption("c", "config", true, "The configuration file to use") //
-            .addOption("e", "encoding", true, "The encoding the configuration file or stream is in (default is UTF-8)") //
-            .addOption("h", "help", true, "Descibe the tool's usage") //
+            .addOption(Option.builder()
+                    .option("c")
+                    .longOpt("config")
+                    .argName("configuration-file")
+                    .hasArg()
+                    .desc("The configuration file to use")
+                    .get()) //
+            .addOption(Option.builder()
+                    .option("e")
+                    .longOpt("encoding")
+                    .argName("encoding-name")
+                    .hasArg()
+                    .desc("The encoding the configuration file or stream is in (default is UTF-8)")
+                    .get()) //
+            .addOption(Option.builder()
+                    .option("h")
+                    .longOpt("help")
+                    .desc("Descibe the tool's usage")
+                    .get()) //
+            .addOption(Option.builder()
+                    .option("m")
+                    .longOpt("mode")
+                    .argName("operation-mode")
+                    .hasArg()
+                    .desc(String.format("The operational mode (must be one of %s", Main.OPERATION_NAMES))
+                    .get()) //
+            .addOption(Option.builder()
+                    .option("n")
+                    .longOpt("name")
+                    .argName("resource-name")
+                    .hasArg()
+                    .desc("The name of the resource to operate with")
+                    .get()) //
+            .addOption(Option.builder()
+                    .option("t")
+                    .longOpt("timeout")
+                    .argName("timeout-in-millis")
+                    .hasArg()
+                    .desc("The maximum amount of time to wait for the requested operation to succeed")
+                    .get()) //
+            .addOption(Option.builder()
+                    .option("p")
+                    .longOpt("param")
+                    .argName("NAME=VALUE")
+                    .valueSeparator(',')
+                    .hasArgs()
+                    .desc("Any parameters to be set for the wrapper mode (can set more than one, syntax is NAME=VALUE)")
+                    .get()) //
+            .addOption(Option.builder()
+                    .option("i")
+                    .longOpt("inline")
+                    .desc("Whether to interpret the remaining command line arguments as the command to execute (the I/O streams will be inherited from the parent process)")
+                    .get()) //
     ;
 
     private static String getDefaultConfig()
@@ -216,6 +281,91 @@ public class Main
                 cfg = new Cfg();
             }
 
+            if (cmdLine.hasOption('i'))
+            {
+                // We're running inline - replace the ExecCfg!
+                ExecCfg exec = new ExecCfg();
+                exec.setCommand(cmdLine.getArgList());
+                // Ensure redirections are inherited
+                exec.setRedirect(null);
+                cfg.getWrapper().setExec(exec);
+            }
+
+            WrapperCfg wrapper = cfg.getWrapper();
+            if (cmdLine.hasOption('m'))
+            {
+                String modeStr = cmdLine.getOptionValue('m');
+                OperationMode mode = null;
+                try
+                {
+                    mode = OperationMode.valueOf(modeStr);
+                }
+                catch (IllegalArgumentException e)
+                {
+                    Main.LOG.error("Illegal mode [{}] - must be one of {}", modeStr, Main.OPERATION_NAMES);
+                    return 1;
+                }
+
+                wrapper.setMode(mode);
+            }
+            if (cmdLine.hasOption('n'))
+            {
+                String name = cmdLine.getOptionValue('n');
+                if (StringUtils.isBlank(name))
+                {
+                    Main.LOG.error("The resource name may not be blank");
+                    return 1;
+                }
+                wrapper.setName(name);
+            }
+            if (cmdLine.hasOption('p'))
+            {
+                Map<String, Object> params = new LinkedHashMap<>();
+                for (String value : cmdLine.getOptionValues('p'))
+                {
+                    // Split on the = sign ... if no = sign, use "true" as the value
+                    String[] arr = StringUtils.split(value, "=", 2);
+                    switch (arr.length)
+                    {
+                    case 2:
+                        params.put(arr[0], arr[1]);
+                        break;
+
+                    case 1:
+                        params.put(arr[0], Boolean.TRUE);
+                        break;
+
+                    default:
+                    case 0:
+                        Main.LOG.error("The parameter specification may not be the empty string");
+                        return 1;
+                    }
+                }
+                wrapper.setParam(params);
+            }
+
+            if (cmdLine.hasOption('t'))
+            {
+                String timeoutStr = cmdLine.getOptionValue('t');
+                // Must be either a timeString or a number
+                long millis = 0;
+                try
+                {
+                    millis = Long.parseLong(timeoutStr);
+                }
+                catch (NumberFormatException e)
+                {
+                    // TODO: Support timestr notation?
+                    Main.LOG.error("Invalid timeout number [{}]", timeoutStr);
+                    return 1;
+                }
+                if (millis <= 0)
+                {
+                    millis = 0;
+                }
+                wrapper.setTimeout(millis);
+            }
+
             Main.LOG.debug("Launching the main loop");
             final SessionCfg session = cfg.getSession();
             final Instant start = Instant.now();
@@ -223,6 +373,7 @@ public class Main
             Main.LOG.info("Command exited with status {} after {}", ret, Duration.between(start, Instant.now()));
             return ret;
         }
+
         catch (Exception e)
         {
             throw e;
