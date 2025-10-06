@@ -63,26 +63,19 @@ public class ExecCfg
     {
         if (command != null)
         {
-            if (String.class.isInstance(command) || Collection.class.isInstance(command) || command.getClass().isArray())
-            {
-                this.command = command;
-            }
-            else
+            if (!(command instanceof String) && !(command instanceof Collection) && !command.getClass().isArray())
             {
                 throw new IllegalArgumentException(
                         String.format("The command must be a string, a Collection, or an array: %s", command.getClass()));
             }
+            this.command = command;
         }
         this.command = command;
     }
 
     public Map<String, String> getEnv()
     {
-        if (this.env == null)
-        {
-            this.env = new LinkedHashMap<>();
-        }
-        return this.env;
+        return Tools.ifNull(this.env, LinkedHashMap::new);
     }
 
     public void setEnv(Map<String, String> env)
@@ -102,11 +95,7 @@ public class ExecCfg
 
     public RedirectCfg getRedirect()
     {
-        if (this.redirect == null)
-        {
-            this.redirect = new RedirectCfg();
-        }
-        return this.redirect;
+        return Tools.ifNull(this.redirect, RedirectCfg::new);
     }
 
     public void setRedirect(RedirectCfg redirect)
