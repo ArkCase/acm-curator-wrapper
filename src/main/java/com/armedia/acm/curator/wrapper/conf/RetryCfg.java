@@ -37,20 +37,13 @@ public class RetryCfg
 
     public int getCount()
     {
-        if (this.count < 0)
-        {
-            this.count = RetryCfg.DEF_COUNT;
-        }
-        return this.count;
+        return (this.count = Math.max(RetryCfg.DEF_COUNT, this.count));
     }
 
-    public void setCount(int count)
+    public RetryCfg setCount(int count)
     {
-        if (count < 0)
-        {
-            count = RetryCfg.DEF_COUNT;
-        }
-        this.count = count;
+        this.count = Math.max(RetryCfg.DEF_COUNT, count);
+        return this;
     }
 
     public int getDelay()
@@ -62,8 +55,9 @@ public class RetryCfg
         return this.delay;
     }
 
-    public void setDelay(int delay)
+    public RetryCfg setDelay(int delay)
     {
         this.delay = Math.max(RetryCfg.MIN_DELAY, delay);
+        return this;
     }
 }

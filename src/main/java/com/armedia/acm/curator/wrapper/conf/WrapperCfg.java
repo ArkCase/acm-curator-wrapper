@@ -40,17 +40,18 @@ public class WrapperCfg
     private OperationMode mode = WrapperCfg.DEFAULT_MODE;
     private String name = null;
     private long timeout = 0;
-    private Map<String, ?> param = null;
+    private Map<String, ?> param = new LinkedHashMap<>();
     private ExecCfg exec = new ExecCfg();
 
     public OperationMode getMode()
     {
-        return Tools.coalesce(this.mode, WrapperCfg.DEFAULT_MODE);
+        return this.mode;
     }
 
-    public void setMode(OperationMode mode)
+    public WrapperCfg setMode(OperationMode mode)
     {
         this.mode = Tools.coalesce(mode, WrapperCfg.DEFAULT_MODE);
+        return this;
     }
 
     public String getName()
@@ -58,50 +59,42 @@ public class WrapperCfg
         return this.name;
     }
 
-    public void setName(String name)
+    public WrapperCfg setName(String name)
     {
         this.name = name;
+        return this;
     }
 
     public long getTimeout()
     {
-        if (this.timeout < 0)
-        {
-            this.timeout = 0;
-        }
         return this.timeout;
     }
 
-    public void setTimeout(long timeout)
+    public WrapperCfg setTimeout(long timeout)
     {
         this.timeout = Math.max(0, timeout);
+        return this;
     }
 
     public Map<String, ?> getParam()
     {
-        if (this.param == null)
-        {
-            this.param = new LinkedHashMap<>();
-        }
         return this.param;
     }
 
-    public void setParam(Map<String, ?> param)
+    public WrapperCfg setParam(Map<String, ?> param)
     {
         this.param = Tools.ifNull(param, LinkedHashMap::new);
+        return this;
     }
 
     public ExecCfg getExec()
     {
-        if (this.exec == null)
-        {
-            this.exec = new ExecCfg();
-        }
         return this.exec;
     }
 
-    public void setExec(ExecCfg exec)
+    public WrapperCfg setExec(ExecCfg exec)
     {
         this.exec = Tools.ifNull(exec, ExecCfg::new);
+        return this;
     }
 }

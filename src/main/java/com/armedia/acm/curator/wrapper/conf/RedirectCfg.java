@@ -37,9 +37,10 @@ public class RedirectCfg
         return this.stdin;
     }
 
-    public void setStdin(String stdin)
+    public RedirectCfg setStdin(String stdin)
     {
         this.stdin = stdin;
+        return this;
     }
 
     public String getStdout()
@@ -47,9 +48,10 @@ public class RedirectCfg
         return this.stdout;
     }
 
-    public void setStdout(String stdout)
+    public RedirectCfg setStdout(String stdout)
     {
         this.stdout = stdout;
+        return this;
     }
 
     public String getStderr()
@@ -57,8 +59,9 @@ public class RedirectCfg
         return this.stderr;
     }
 
-    public void setStderr(String stderr)
+    public RedirectCfg setStderr(String stderr)
     {
         this.stderr = stderr;
+        return this;
     }
 }

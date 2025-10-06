@@ -59,8 +59,8 @@ public class SessionCfg
     }
 
     private String connect = null;
-    private int sessionTimeout = 0;
-    private int connectionTimeout = 0;
+    private int sessionTimeout = Session.sanitizeSessionTimeout(0);
+    private int connectionTimeout = Session.sanitizeConnectionTimeout(0);
     private String basePath = null;
     private RetryCfg retry = new RetryCfg();
 
@@ -69,7 +69,7 @@ public class SessionCfg
         return this.connect;
     }
 
-    public void setConnect(String connect)
+    public SessionCfg setConnect(String connect)
     {
         if (!Tools.isEmpty(connect))
         {
@@ -97,34 +97,29 @@ public class SessionCfg
             connect = null;
         }
         this.connect = connect;
+        return this;
     }
 
     public int getSessionTimeout()
     {
-        if (this.sessionTimeout < Session.MIN_SESSION_TIMEOUT)
-        {
-            this.sessionTimeout = Session.sanitizeSessionTimeout(this.sessionTimeout);
-        }
         return this.sessionTimeout;
     }
 
-    public void setSessionTimeout(int sessionTimeout)
+    public SessionCfg setSessionTimeout(int sessionTimeout)
     {
         this.sessionTimeout = Session.sanitizeSessionTimeout(sessionTimeout);
+        return this;
     }
 
     public int getConnectionTimeout()
     {
-        if (this.connectionTimeout < Session.MIN_CONNECTION_TIMEOUT)
-        {
-            this.connectionTimeout = Session.sanitizeConnectionTimeout(this.connectionTimeout);
-        }
         return this.connectionTimeout;
     }
 
-    public void setConnectionTimeout(int connectionTimeout)
+    public SessionCfg setConnectionTimeout(int connectionTimeout)
     {
         this.connectionTimeout = Session.sanitizeConnectionTimeout(connectionTimeout);
+        return this;
     }
 
     public String getBasePath()
@@ -132,23 +127,21 @@ public class SessionCfg
         return this.basePath;
     }
 
-    public void setBasePath(String basePath)
+    public SessionCfg setBasePath(String basePath)
     {
         this.basePath = basePath;
+        return this;
     }
 
     public RetryCfg getRetry()
     {
-        if (this.retry == null)
-        {
-            this.retry = new RetryCfg();
-        }
         return this.retry;
     }
 
-    public void setRetry(RetryCfg retry)
+    public SessionCfg setRetry(RetryCfg retry)
     {
         this.retry = Tools.ifNull(retry, RetryCfg::new);
+        return this;
     }
 
     public Session build() throws InterruptedException

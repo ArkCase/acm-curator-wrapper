@@ -34,24 +34,21 @@ import com.armedia.acm.curator.tools.Tools;
 
 public class ExecCfg
 {
-    private String workdir = null;
+    private String workdir = Tools.CWD.getPath();
     private Object command = null;
-    private Map<String, String> env = null;
+    private Map<String, String> env = new LinkedHashMap<>();
     private boolean cleanEnv = false;
     private RedirectCfg redirect = new RedirectCfg();
 
     public String getWorkdir()
     {
-        if (this.workdir == null)
-        {
-            this.workdir = Tools.CWD.getPath();
-        }
         return this.workdir;
     }
 
-    public void setWorkdir(String workdir)
+    public ExecCfg setWorkdir(String workdir)
     {
         this.workdir = Tools.ifEmpty(workdir, Tools.CWD::getPath);
+        return this;
     }
 
     public Object getCommand()
@@ -59,28 +56,26 @@ public class ExecCfg
         return this.command;
     }
 
-    public void setCommand(Object command)
+    public ExecCfg setCommand(Object command)
     {
-        if (command != null)
+        if ((command != null) && (!(command instanceof String) && !(command instanceof Collection) && !command.getClass().isArray()))
         {
-            if (!(command instanceof String) && !(command instanceof Collection) && !command.getClass().isArray())
-            {
-                throw new IllegalArgumentException(
-                        String.format("The command must be a string, a Collection, or an array: %s", command.getClass()));
-            }
-            this.command = command;
+            throw new IllegalArgumentException(
+                    String.format("The command must be a string, a Collection, or an array: %s", command.getClass()));
         }
         this.command = command;
+        return this;
     }
 
     public Map<String, String> getEnv()
     {
-        return Tools.ifNull(this.env, LinkedHashMap::new);
+        return this.env;
     }
 
-    public void setEnv(Map<String, String> env)
+    public ExecCfg setEnv(Map<String, String> env)
     {
         this.env = Tools.ifNull(env, LinkedHashMap::new);
+        return this;
     }
 
     public boolean isCleanEnv()
@@ -88,18 +83,20 @@ public class ExecCfg
         return this.cleanEnv;
     }
 
-    public void setCleanEnv(boolean cleanEnv)
+    public ExecCfg setCleanEnv(boolean cleanEnv)
     {
         this.cleanEnv = cleanEnv;
+        return this;
     }
 
     public RedirectCfg getRedirect()
     {
-        return Tools.ifNull(this.redirect, RedirectCfg::new);
+        return this.redirect;
     }
 
-    public void setRedirect(RedirectCfg redirect)
+    public ExecCfg setRedirect(RedirectCfg redirect)
     {
         this.redirect = Tools.ifNull(redirect, RedirectCfg::new);
+        return this;
     }
 }
