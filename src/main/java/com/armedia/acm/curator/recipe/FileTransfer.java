@@ -22,5 +22,10 @@ public abstract class FileTransfer extends Recipe
         return Strings.CI.equals("true", StringUtils.trim(StringUtils.lowerCase(str)));
     }
 
+    public int execute(String target)
+    {
+        return execute(target, null);
+    }
+
     public abstract int execute(String counterpart, String recursiveStr);
 }
