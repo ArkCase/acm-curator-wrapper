@@ -34,6 +34,8 @@ import com.armedia.acm.curator.Session;
 
 public class Download extends FileTransfer
 {
+    private static final byte[] NO_BYTES = {};
+
     public Download(Session session)
     {
         super(session);
@@ -58,6 +60,10 @@ public class Download extends FileTransfer
         try
         {
             byte[] data = getSession().getClient().getData().forPath(this.name);
+            if (data == null)
+            {
+                data = Download.NO_BYTES;
+            }
             FileUtils.writeByteArrayToFile(new File(target), data);
             return 0;
         }
