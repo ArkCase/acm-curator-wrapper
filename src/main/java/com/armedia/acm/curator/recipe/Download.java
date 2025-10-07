@@ -47,10 +47,8 @@ public class Download extends FileTransfer
     }
 
     @Override
-    public int execute(String target, String recursiveStr)
+    public int execute(String target, boolean recursive)
     {
-        parseRecursive(recursiveStr);
-
         if (!isSessionEnabled())
         {
             this.log.warn("The current session is not enabled, cannot download resources");
@@ -59,7 +57,7 @@ public class Download extends FileTransfer
 
         try
         {
-            byte[] data = getSession().getClient().getData().forPath(this.name);
+            byte[] data = getSession().getClient().getData().forPath(this.path);
             if (data == null)
             {
                 data = Download.NO_BYTES;

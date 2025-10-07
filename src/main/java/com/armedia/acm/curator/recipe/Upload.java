@@ -46,10 +46,8 @@ public class Upload extends FileTransfer
     }
 
     @Override
-    public int execute(String source, String recursiveStr)
+    public int execute(String source, boolean recursive)
     {
-        parseRecursive(recursiveStr);
-
         if (!isSessionEnabled())
         {
             this.log.warn("The current session is not enabled, cannot upload any resources");
@@ -58,7 +56,7 @@ public class Upload extends FileTransfer
 
         try (InputStream in = Files.newInputStream(Path.of(source), StandardOpenOption.READ))
         {
-            getSession().getClient().setData().forPath(this.name, in.readAllBytes());
+            getSession().getClient().setData().idempotent().forPath(this.path, in.readAllBytes());
             return 0;
         }
         catch (Exception e)

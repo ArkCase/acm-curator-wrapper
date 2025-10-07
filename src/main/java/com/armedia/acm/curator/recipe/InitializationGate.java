@@ -290,7 +290,7 @@ public class InitializationGate extends Recipe
             byte[] data = getClient().getData().forPath(this.path);
             if (this.log.isDebugEnabled())
             {
-                this.log.debug("Data loaded from path [{}] = [{}]", this.path, InitializationGate.toHexString(data));
+                this.log.debug("Data loaded from the node named [{}] = [{}]", this.name, InitializationGate.toHexString(data));
             }
             return new InitializationInfo(data);
         }
@@ -318,11 +318,11 @@ public class InitializationGate extends Recipe
         }
         try
         {
-            getClient().setData().forPath(this.path, data);
+            getClient().setData().idempotent().forPath(this.path, data);
         }
         catch (NoNodeException e)
         {
-            getClient().create().creatingParentContainersIfNeeded().forPath(this.path, data);
+            getClient().create().idempotent().creatingParentContainersIfNeeded().forPath(this.path, data);
         }
     }
 }

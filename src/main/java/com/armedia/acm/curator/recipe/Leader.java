@@ -80,7 +80,7 @@ public class Leader extends Recipe
             return null;
         }
 
-        this.log.debug("Leadership node path: [{}]", this.path);
+        this.log.debug("Leadership node name: [{}]", this.name);
         if (maxWait == null)
         {
             maxWait = Leader.WAIT_FOREVER;
@@ -95,7 +95,7 @@ public class Leader extends Recipe
             {
                 try
                 {
-                    Leader.this.log.info("Leadership acquired on path [{}]  (# {})", Leader.this.path, Leader.this.cleanupKey.get());
+                    Leader.this.log.info("Leadership acquired with the name [{}]  (# {})", Leader.this.name, Leader.this.cleanupKey.get());
                     awaitLeadership.await();
                     Leader.this.log.info("Signalled the start of the execution, awaiting completion (# {})", Leader.this.cleanupKey.get());
                     awaitCompletion.await();
@@ -208,7 +208,7 @@ public class Leader extends Recipe
                 }
             }
 
-            if (ret == false)
+            if (!ret)
             {
                 Tools.closeQuietly(close);
                 return null;
@@ -251,7 +251,7 @@ public class Leader extends Recipe
     {
         if (job != null)
         {
-            final Predicate<? super T> c = (condition != null ? condition : (t) -> false);
+            final Predicate<? super T> c = (condition != null ? condition : t -> false);
             whileLeader(() -> c.test(job.get()), maxWait);
         }
     }

@@ -65,7 +65,7 @@ public class Mutex extends Recipe
         final InterProcessMutex lock = new InterProcessMutex(getClient(), this.path);
         if ((maxWait != null) && !maxWait.isNegative() && !maxWait.isZero())
         {
-            this.log.info("Acquiring the mutex at [{}] (maximum wait {})", this.path, maxWait);
+            this.log.info("Acquiring the mutex named [{}] (maximum wait {})", this.name, maxWait);
             if (!lock.acquire(maxWait.toMillis(), TimeUnit.MILLISECONDS))
             {
                 throw new TimeoutException(String.format("Timed out acquiring the lock [%s] (timeout = %s)", this.name, maxWait));
@@ -73,11 +73,11 @@ public class Mutex extends Recipe
         }
         else
         {
-            this.log.info("Acquiring the mutex at [{}]", this.path);
+            this.log.info("Acquiring the mutex named [{}]", this.name);
             lock.acquire();
         }
 
-        this.log.trace("Acquired the lock at [{}]", this.path);
+        this.log.trace("Acquired the lock named [{}]", this.name);
         return new ItemCloser<>(lock, InterProcessMutex::release);
     }
 }
