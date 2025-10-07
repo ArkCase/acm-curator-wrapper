@@ -28,6 +28,8 @@ package com.armedia.acm.curator.wrapper;
 
 import java.io.File;
 import java.lang.ProcessBuilder.Redirect;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,6 +39,7 @@ import java.util.Objects;
 import java.util.StringTokenizer;
 import java.util.function.Consumer;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.function.FailableSupplier;
 import org.slf4j.Logger;
@@ -109,10 +112,7 @@ public class Wrapper
         if (Wrapper.NULL.equalsIgnoreCase(path))
         {
             // Enable this when we move to Java 11
-            // redirect = Redirect.DISCARD;
-
-            // This only exists for Java 8
-            redirect = null;
+            redirect = Redirect.DISCARD;
         }
         else if (path != null)
         {
@@ -220,7 +220,7 @@ public class Wrapper
         }
     }
 
-    private int runWrappedCommand(ExecCfg cmd) throws Exception
+    private int runWrappedCommand(ExecCfg check, ExecCfg cmd) throws Exception
     {
         try (Session session = this.session.get())
         {
@@ -310,6 +310,78 @@ public class Wrapper
             case exists:
                 return new Exists(session, this.cfg.getName()).execute();
 
+            case dcldata:
+                // We need to download the file and feed it to the check via stdin. We'll use this
+                // temporary file to do so. We will then also redirect the generator's output
+                // to this file in order to upload the updated data, if necessary
+                final Path tempFile = Files.createTempFile(null, null);
+                try
+                {
+                    final Download download = new Download(session, this.cfg.getName());
+                    this.log.info("Checking the DCL data at [{}]...", download.getPath());
+                    check.getRedirect().setStdin(tempFile.toString());
+
+                    // Make sure the download succeeded
+                    if (download.execute(tempFile.toString()) != 0)
+                    {
+                        // Failed to download ... can't complete!
+                        return 1;
+                    }
+
+                    if (run(check) == 0)
+                    {
+                        // If the check was successful, we need not touch
+                        // the protected data, and we just return a happy 0
+                        this.log.info("The protected data at [{}] is up-to-date", download.getPath());
+                        return 0;
+                    }
+
+                    // Uh-oh ... the check failed ... means the data apparently
+                    // requires an update ... so let's do it!
+                    this.log.info("The protected data at [{}] requires an update ... creating a mutex lock...", download.getPath());
+                    try (AutoCloseable m = new Mutex(session, String.format("%s.lock", download.getName())).acquire(maxWait))
+                    {
+                        // Make sure the download succeeded
+                        if (download.execute(tempFile.toString()) != 0)
+                        {
+                            // Failed to download ... can't complete!
+                            return 1;
+                        }
+
+                        if (run(check) == 0)
+                        {
+                            // If the check was successful, we need not touch
+                            // the protected data, and we just return a happy 0
+                            this.log.info("The protected data at [{}] is up-to-date", download.getPath());
+                            return 0;
+                        }
+
+                        // Ok we for sure have to update the data ... so let's do it!
+
+                        // We need to capture STDOUT from this command in order to
+                        // read the newly-generated data, which will then be uploaded
+                        this.log.info("Generating the new data for [{}] ...", download.getPath());
+                        cmd.getRedirect().setStdout(tempFile.toString());
+                        int result = run(cmd);
+                        if (result != 0)
+                        {
+                            // If the data generation command somehow failed, we
+                            // don't update the file and simply bubble up the error
+                            this.log.error("The generator for [{}] failed (rc = {})", download.getPath(), result);
+                            return result;
+                        }
+
+                        // The generation was OK ... update the data!
+                        this.log.info("The data generator succeeded! Updating the protected data at [{}] ...", download.getPath());
+                        return new Upload(session, download.getName()).execute(tempFile.toString());
+                    }
+                }
+                finally
+                {
+                    // Good citizens clean up after themselves!
+                    FileUtils.deleteQuietly(tempFile.toFile());
+                }
+
             default:
                 this.log.info("No algorithm for wrapper type {}", this.cfg.getMode());
                 return run(cmd);
@@ -328,7 +400,7 @@ public class Wrapper
 
         try
         {
-            return runWrappedCommand(cmd);
+            return runWrappedCommand(this.cfg.getCheck(), cmd);
         }
         catch (Exception e)
         {

@@ -36,6 +36,7 @@ public enum OperationMode
     download, //
     upload, //
     exists, //
+    dcldata, //
     // barrier, //
     //
     ;
