@@ -29,14 +29,15 @@ package com.armedia.acm.curator.wrapper.conf;
 public enum OperationMode
 {
     //
+    dcldata, //
+    delete, //
     direct, //
+    download, //
+    exists, //
+    init, //
     leader, //
     mutex, //
-    init, //
-    download, //
     upload, //
-    exists, //
-    dcldata, //
     // barrier, //
     //
     ;

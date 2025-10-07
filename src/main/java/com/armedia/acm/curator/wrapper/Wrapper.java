@@ -46,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.armedia.acm.curator.Session;
+import com.armedia.acm.curator.recipe.Delete;
 import com.armedia.acm.curator.recipe.Download;
 import com.armedia.acm.curator.recipe.Exists;
 import com.armedia.acm.curator.recipe.InitializationGate;
@@ -63,6 +64,7 @@ import com.armedia.acm.curator.wrapper.conf.WrapperCfg;
 public class Wrapper
 {
     private static final String NULL = "null";
+    private static final String ENV_DCL_DATA_FILE = "DCL_DATA_FILE";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final WrapperCfg cfg;
@@ -291,13 +293,16 @@ public class Wrapper
                 }
                 return 0;
 
+            case delete:
+                return new Delete(session, this.cfg.getName()).execute();
+
             case download:
                 String target = getParameter("tgt");
                 if (StringUtils.isBlank(target))
                 {
                     target = getParameter("target");
                 }
-                return new Download(session, this.cfg.getName()).execute(target, getParameter("recursive"));
+                return new Download(session, this.cfg.getName()).execute(target);
 
             case upload:
                 String source = getParameter("src");
@@ -305,7 +310,7 @@ public class Wrapper
                 {
                     source = getParameter("source");
                 }
-                return new Upload(session, this.cfg.getName()).execute(source, getParameter("recursive"));
+                return new Upload(session, this.cfg.getName()).execute(source);
 
             case exists:
                 return new Exists(session, this.cfg.getName()).execute();
@@ -314,12 +319,16 @@ public class Wrapper
                 // We need to download the file and feed it to the check via stdin. We'll use this
                 // temporary file to do so. We will then also redirect the generator's output
                 // to this file in order to upload the updated data, if necessary
-                final Path tempFile = Files.createTempFile(null, null);
+                final Path tempFile = Files.createTempFile(null, null).toRealPath();
+
+                // Expose the file location via an environment variable
+                check.getEnv().put(Wrapper.ENV_DCL_DATA_FILE, tempFile.toString());
+                cmd.getEnv().put(Wrapper.ENV_DCL_DATA_FILE, tempFile.toString());
+
                 try
                 {
                     final Download download = new Download(session, this.cfg.getName());
                     this.log.info("Checking the DCL data at [{}]...", download.getPath());
-                    check.getRedirect().setStdin(tempFile.toString());
 
                     // Make sure the download succeeded
                     if (download.execute(tempFile.toString()) != 0)
@@ -361,7 +370,6 @@ public class Wrapper
                         // We need to capture STDOUT from this command in order to
                         // read the newly-generated data, which will then be uploaded
                         this.log.info("Generating the new data for [{}] ...", download.getPath());
-                        cmd.getRedirect().setStdout(tempFile.toString());
                         int result = run(cmd);
                         if (result != 0)
                         {
@@ -373,7 +381,14 @@ public class Wrapper
 
                         // The generation was OK ... update the data!
                         this.log.info("The data generator succeeded! Updating the protected data at [{}] ...", download.getPath());
-                        return new Upload(session, download.getName()).execute(tempFile.toString());
+
+                        // If the file still exists, we upload the contents if they've changed...
+                        if (Files.exists(tempFile))
+                        {
+                            return new Upload(session, download.getName()).execute(tempFile.toString());
+                        }
+
+                        return new Delete(session, download.getName()).execute();
                     }
                 }
                 finally
