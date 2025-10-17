@@ -40,10 +40,9 @@ public class RetryCfg
         return (this.count = Math.max(RetryCfg.DEF_COUNT, this.count));
     }
 
-    public RetryCfg setCount(int count)
+    public void setCount(int count)
     {
         this.count = Math.max(RetryCfg.DEF_COUNT, count);
-        return this;
     }
 
     public int getDelay()
@@ -55,9 +54,8 @@ public class RetryCfg
         return this.delay;
     }
 
-    public RetryCfg setDelay(int delay)
+    public void setDelay(int delay)
     {
         this.delay = Math.max(RetryCfg.MIN_DELAY, delay);
-        return this;
     }
 }

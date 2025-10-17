@@ -49,10 +49,9 @@ public class WrapperCfg
         return this.mode;
     }
 
-    public WrapperCfg setMode(OperationMode mode)
+    public void setMode(OperationMode mode)
     {
         this.mode = Tools.coalesce(mode, WrapperCfg.DEFAULT_MODE);
-        return this;
     }
 
     public String getName()
@@ -60,10 +59,9 @@ public class WrapperCfg
         return this.name;
     }
 
-    public WrapperCfg setName(String name)
+    public void setName(String name)
     {
         this.name = name;
-        return this;
     }
 
     public long getTimeout()
@@ -71,10 +69,9 @@ public class WrapperCfg
         return this.timeout;
     }
 
-    public WrapperCfg setTimeout(long timeout)
+    public void setTimeout(long timeout)
     {
         this.timeout = Math.max(0, timeout);
-        return this;
     }
 
     public Map<String, ?> getParam()
@@ -82,10 +79,9 @@ public class WrapperCfg
         return this.param;
     }
 
-    public WrapperCfg setParam(Map<String, ?> param)
+    public void setParam(Map<String, ?> param)
     {
         this.param = Tools.ifNull(param, LinkedHashMap::new);
-        return this;
     }
 
     public ExecCfg getExec()
@@ -93,10 +89,9 @@ public class WrapperCfg
         return this.exec;
     }
 
-    public WrapperCfg setExec(ExecCfg exec)
+    public void setExec(ExecCfg exec)
     {
         this.exec = Tools.ifNull(exec, ExecCfg::new);
-        return this;
     }
 
     public ExecCfg getCheck()
@@ -104,9 +99,8 @@ public class WrapperCfg
         return this.check;
     }
 
-    public WrapperCfg setCheck(ExecCfg check)
+    public void setCheck(ExecCfg check)
     {
         this.check = Tools.ifNull(check, ExecCfg::new);
-        return this;
     }
 }

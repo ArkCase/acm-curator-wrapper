@@ -60,6 +60,7 @@ import org.yaml.snakeyaml.representer.Representer;
 import com.armedia.acm.curator.tools.SysPropEnvScalarConstructor;
 import com.armedia.acm.curator.tools.Tools;
 import com.armedia.acm.curator.wrapper.conf.ExecCfg;
+import com.armedia.acm.curator.wrapper.conf.MainCfg;
 import com.armedia.acm.curator.wrapper.conf.OperationMode;
 import com.armedia.acm.curator.wrapper.conf.SessionCfg;
 import com.armedia.acm.curator.wrapper.conf.WrapperCfg;
@@ -79,40 +80,6 @@ public class Main
     {
         DEFAULT_CONFIG = new File(Tools.CWD, "curator-wrapper.yaml");
         Main.LOG.trace("Default config: [{}]", Main.DEFAULT_CONFIG);
-    }
-
-    public static class Cfg
-    {
-        private SessionCfg session = new SessionCfg();
-        private WrapperCfg wrapper = new WrapperCfg();
-
-        public SessionCfg getSession()
-        {
-            if (this.session == null)
-            {
-                this.session = new SessionCfg();
-            }
-            return this.session;
-        }
-
-        public void setSession(SessionCfg session)
-        {
-            this.session = Tools.ifNull(session, SessionCfg::new);
-        }
-
-        public WrapperCfg getWrapper()
-        {
-            if (this.wrapper == null)
-            {
-                this.wrapper = new WrapperCfg();
-            }
-            return this.wrapper;
-        }
-
-        public void setWrapper(WrapperCfg wrapper)
-        {
-            this.wrapper = Tools.ifNull(wrapper, WrapperCfg::new);
-        }
     }
 
     private static final Options OPTIONS = new Options() //
@@ -261,24 +228,25 @@ public class Main
                 }
             }
 
-            final Cfg cfg;
+            final MainCfg cfg;
             if (cfgReader != null)
             {
                 Main.LOG.debug("Parsing the configuration YAML");
                 try (Reader r = cfgReader)
                 {
                     final Constructor constructor = new SysPropEnvScalarConstructor();
-                    Representer representer = new Representer(new DumperOptions());
+                    DumperOptions dumperOptions = new DumperOptions();
+                    Representer representer = new Representer(dumperOptions);
                     representer.getPropertyUtils().setSkipMissingProperties(true);
-                    Yaml yaml = new Yaml(constructor, representer, new DumperOptions());
+                    Yaml yaml = new Yaml(constructor, representer, dumperOptions);
                     yaml.addImplicitResolver(EnvScalarConstructor.ENV_TAG, EnvScalarConstructor.ENV_FORMAT, "$");
-                    cfg = yaml.loadAs(r, Cfg.class);
+                    cfg = yaml.loadAs(r, MainCfg.class);
                 }
                 Main.LOG.trace("Configuration parsed");
             }
             else
             {
-                cfg = new Cfg();
+                cfg = new MainCfg();
             }
 
             if (cmdLine.hasOption('i'))
@@ -373,7 +341,6 @@ public class Main
             Main.LOG.info("Command exited with status {} after {}", ret, Duration.between(start, Instant.now()));
             return ret;
         }
-
         catch (Exception e)
         {
             throw e;

@@ -45,10 +45,9 @@ public class ExecCfg
         return this.workdir;
     }
 
-    public ExecCfg setWorkdir(String workdir)
+    public void setWorkdir(String workdir)
     {
         this.workdir = Tools.ifEmpty(workdir, Tools.CWD::getPath);
-        return this;
     }
 
     public Object getCommand()
@@ -56,7 +55,7 @@ public class ExecCfg
         return this.command;
     }
 
-    public ExecCfg setCommand(Object command)
+    public void setCommand(Object command)
     {
         if ((command != null) && (!(command instanceof String) && !(command instanceof Collection) && !command.getClass().isArray()))
         {
@@ -64,7 +63,6 @@ public class ExecCfg
                     String.format("The command must be a string, a Collection, or an array: %s", command.getClass()));
         }
         this.command = command;
-        return this;
     }
 
     public Map<String, String> getEnv()
@@ -72,10 +70,9 @@ public class ExecCfg
         return this.env;
     }
 
-    public ExecCfg setEnv(Map<String, String> env)
+    public void setEnv(Map<String, String> env)
     {
         this.env = Tools.ifNull(env, LinkedHashMap::new);
-        return this;
     }
 
     public boolean isCleanEnv()
@@ -83,10 +80,9 @@ public class ExecCfg
         return this.cleanEnv;
     }
 
-    public ExecCfg setCleanEnv(boolean cleanEnv)
+    public void setCleanEnv(boolean cleanEnv)
     {
         this.cleanEnv = cleanEnv;
-        return this;
     }
 
     public RedirectCfg getRedirect()
@@ -94,9 +90,8 @@ public class ExecCfg
         return this.redirect;
     }
 
-    public ExecCfg setRedirect(RedirectCfg redirect)
+    public void setRedirect(RedirectCfg redirect)
     {
         this.redirect = Tools.ifNull(redirect, RedirectCfg::new);
-        return this;
     }
 }
