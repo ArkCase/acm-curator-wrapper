@@ -14,7 +14,7 @@
 	<inceptionYear>2023</inceptionYear>
 
 	<properties>
-		<revision>1.8.0-SNAPSHOT</revision>
+		<revision>1.8.1-SNAPSHOT</revision>
 		<maven.min-version>3.8.6</maven.min-version>
 		<java.version>11</java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -29,7 +29,7 @@
 		<commons-cli.version>1.10.0</commons-cli.version>
 		<commons-lang.version>3.19.0</commons-lang.version>
 		<maven-artifact.version>3.9.11</maven-artifact.version>
-		<logback.version>1.5.19</logback.version>
+		<logback.version>1.5.25</logback.version>
 		<logback-colorizer.version>1.0.1</logback-colorizer.version>
 		<junit-jupiter.version>5.14.0</junit-jupiter.version>
 		<easymock.version>5.6.0</easymock.version>
