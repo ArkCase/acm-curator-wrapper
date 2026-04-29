@@ -26,42 +26,18 @@
  */
 package com.armedia.acm.curator.wrapper.conf;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import org.apache.commons.lang3.StringUtils;
 
 import com.armedia.acm.curator.Session;
 import com.armedia.acm.curator.tools.Tools;
 
 public class SessionCfg
 {
-    public static final String DEFAULT_PORT = String.valueOf(2181);
-
-    protected static final Pattern HOSTPORT_PARSER = Pattern
-            .compile("^((?:[a-z0-9][-a-z0-9]*)?[a-z0-9](?:[.](?:[a-z0-9][-a-z0-9]*)?[a-z0-9])*)(?::([1-9][0-9]*))?$",
-                    Pattern.CASE_INSENSITIVE);
-
-    protected static final String parseHostPort(String hostport)
-    {
-        if ((hostport == null) || Tools.isEmpty(hostport))
-        {
-            return null;
-        }
-
-        Matcher m = SessionCfg.HOSTPORT_PARSER.matcher(hostport);
-        if (!m.matches())
-        {
-            throw new IllegalArgumentException(String.format("Invalid host:port string: [%s]", hostport));
-        }
-
-        String host = m.group(1);
-        String port = Tools.ifEmpty(m.group(2), SessionCfg.DEFAULT_PORT);
-        return String.format("%s:%s", host, port);
-    }
 
     private String connect = null;
+    private String instanceId = null;
     private int sessionTimeout = Session.sanitizeSessionTimeout(0);
     private int connectionTimeout = Session.sanitizeConnectionTimeout(0);
-    private String basePath = null;
     private RetryCfg retry = new RetryCfg();
 
     public String getConnect()
@@ -71,32 +47,17 @@ public class SessionCfg
 
     public void setConnect(String connect)
     {
-        if (!Tools.isEmpty(connect))
-        {
-            // Validate that it's a CSV list of host:port pairs, and sanitize
-            // The port is optional and will be defaulted to 2181
-            StringBuilder sb = new StringBuilder(connect.length());
-            for (String s : connect.split(","))
-            {
-                s = SessionCfg.parseHostPort(s.trim());
-                if (s == null)
-                {
-                    continue;
-                }
-
-                if (sb.length() > 0)
-                {
-                    sb.append(',');
-                }
-                sb.append(s);
-            }
-            connect = (Tools.isEmpty(sb) ? null : sb.toString());
-        }
-        else
-        {
-            connect = null;
-        }
         this.connect = connect;
+    }
+
+    public String getInstanceId()
+    {
+        return this.instanceId;
+    }
+
+    public void setInstanceId(String instanceId)
+    {
+        this.instanceId = StringUtils.defaultIfBlank(instanceId, StringUtils.EMPTY);
     }
 
     public int getSessionTimeout()
@@ -119,16 +80,6 @@ public class SessionCfg
         this.connectionTimeout = Session.sanitizeConnectionTimeout(connectionTimeout);
     }
 
-    public String getBasePath()
-    {
-        return this.basePath;
-    }
-
-    public void setBasePath(String basePath)
-    {
-        this.basePath = basePath;
-    }
-
     public RetryCfg getRetry()
     {
         return this.retry;
@@ -147,7 +98,6 @@ public class SessionCfg
                 .connect(this.connect) //
                 .sessionTimeout(this.sessionTimeout) //
                 .connectionTimeout(this.connectionTimeout) //
-                .basePath(this.basePath) //
                 .retryCount(retry.getCount()) //
                 .retryDelay(retry.getDelay()) //
                 .build() //

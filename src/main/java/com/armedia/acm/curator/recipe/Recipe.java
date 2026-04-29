@@ -97,8 +97,7 @@ public class Recipe
     protected Recipe(Session session, String name)
     {
         this.session = session;
-        String root = String.format("%s/%s", (session != null ? session.getBasePath() : Session.DEFAULT_BASE_PATH),
-                getClass().getSimpleName().toLowerCase());
+        String root = String.format("/%s", getClass().getSimpleName().toLowerCase());
         if (Tools.isEmpty(name))
         {
             this.name = UUID.randomUUID().toString();

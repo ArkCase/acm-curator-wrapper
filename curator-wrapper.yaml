@@ -2,7 +2,6 @@ session:
   connect: "zookeeper:2181"
   sessionTimeout: 1000
   connectionTimeout: 5000
-  basePath: "/arkcase/pentaho"
 
   retry:
     count: 0

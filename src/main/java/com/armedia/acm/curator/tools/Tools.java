@@ -36,6 +36,10 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.function.Supplier;
 
+import org.apache.commons.lang3.RegExUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+
 public class Tools
 {
     public static final File CWD = Tools.canonicalize(new File("."));
@@ -178,5 +182,52 @@ public class Tools
                 return Serializable.class.cast(ois.readObject());
             }
         }
+    }
+
+    public static String getParameter(String name)
+    {
+        return Tools.getParameter(name, null);
+    }
+
+    public static String getParameter(String name, Logger log)
+    {
+        if (StringUtils.isBlank(name))
+        {
+            throw new IllegalArgumentException("The parameter name may not be a blank string");
+        }
+
+        String value = null;
+
+        final String sysProp = name;
+
+        value = System.getProperty(sysProp);
+        if (StringUtils.isNotBlank(value))
+        {
+            if (log != null)
+            {
+                log.trace("Found the system property {} with value [{}]", sysProp, value);
+            }
+            return value;
+        }
+
+        // Need to replace anything that isn't a letter, number, or
+        // underscore to an underscore to ensure it's a valid envvar name
+        final String envVar = RegExUtils.replaceAll(sysProp, "[\\W]", "_").toUpperCase();
+
+        value = System.getenv(envVar);
+        if (StringUtils.isNotBlank(value))
+        {
+            if (log != null)
+            {
+                log.trace("Found the environment variable {} with value [{}]", envVar, value);
+            }
+            return value;
+        }
+
+        if (log != null)
+        {
+            log.trace("No sysprop or envvar found for {}, {} or {}", name, sysProp, envVar);
+        }
+        return null;
     }
 }

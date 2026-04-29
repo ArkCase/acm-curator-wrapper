@@ -81,7 +81,6 @@ public class SessionTest
             Assertions.assertEquals(Session.DEFAULT_SESSION_TIMEOUT, builder.sessionTimeout(), () -> "i = " + I);
             Assertions.assertEquals(Session.DEFAULT_RETRY_COUNT, builder.retryCount(), () -> "i = " + I);
             Assertions.assertEquals(Session.DEFAULT_RETRY_DELAY, builder.retryDelay(), () -> "i = " + I);
-            Assertions.assertEquals(Session.DEFAULT_BASE_PATH, builder.basePath(), () -> "i = " + I);
             Assertions.assertEquals(Session.DEFAULT_WAIT_FOR_CONNECTION, builder.waitForConnection(), () -> "i = " + I);
         }
         builder.connectionTimeout(0);
@@ -90,7 +89,6 @@ public class SessionTest
         Assertions.assertEquals(Session.DEFAULT_SESSION_TIMEOUT, builder.sessionTimeout(), () -> "0");
         Assertions.assertEquals(Session.DEFAULT_RETRY_COUNT, builder.retryCount(), () -> "0");
         Assertions.assertEquals(Session.DEFAULT_RETRY_DELAY, builder.retryDelay(), "0");
-        Assertions.assertEquals(Session.DEFAULT_BASE_PATH, builder.basePath(), "0");
         Assertions.assertEquals(Session.DEFAULT_WAIT_FOR_CONNECTION, builder.waitForConnection(), "0");
         for (int i = Integer.MAX_VALUE; i > 0; i /= 2)
         {
@@ -101,7 +99,6 @@ public class SessionTest
             Assertions.assertEquals(Session.DEFAULT_SESSION_TIMEOUT, builder.sessionTimeout(), () -> "i = " + I);
             Assertions.assertEquals(Session.DEFAULT_RETRY_COUNT, builder.retryCount(), () -> "i = " + I);
             Assertions.assertEquals(Session.DEFAULT_RETRY_DELAY, builder.retryDelay(), () -> "i = " + I);
-            Assertions.assertEquals(Session.DEFAULT_BASE_PATH, builder.basePath(), () -> "i = " + I);
             Assertions.assertEquals(Session.DEFAULT_WAIT_FOR_CONNECTION, builder.waitForConnection(), () -> "i = " + I);
         }
         builder.connectionTimeout(0);
@@ -115,7 +112,6 @@ public class SessionTest
             Assertions.assertEquals(Session.DEFAULT_SESSION_TIMEOUT, builder.sessionTimeout(), () -> "i = " + I);
             Assertions.assertEquals(Session.DEFAULT_RETRY_COUNT, builder.retryCount(), () -> "i = " + I);
             Assertions.assertEquals(Session.DEFAULT_RETRY_DELAY, builder.retryDelay(), () -> "i = " + I);
-            Assertions.assertEquals(Session.DEFAULT_BASE_PATH, builder.basePath(), () -> "i = " + I);
             Assertions.assertEquals(Session.DEFAULT_WAIT_FOR_CONNECTION, builder.waitForConnection(), () -> "i = " + I);
         }
         builder.sessionTimeout(0);
@@ -124,7 +120,6 @@ public class SessionTest
         Assertions.assertEquals(Session.DEFAULT_SESSION_TIMEOUT, builder.sessionTimeout(), () -> "0");
         Assertions.assertEquals(Session.DEFAULT_RETRY_COUNT, builder.retryCount(), "0");
         Assertions.assertEquals(Session.DEFAULT_RETRY_DELAY, builder.retryDelay(), "0");
-        Assertions.assertEquals(Session.DEFAULT_BASE_PATH, builder.basePath(), "0");
         Assertions.assertEquals(Session.DEFAULT_WAIT_FOR_CONNECTION, builder.waitForConnection(), "0");
         for (int i = Integer.MAX_VALUE; i > 0; i /= 2)
         {
@@ -135,7 +130,6 @@ public class SessionTest
             Assertions.assertEquals(Math.max(Session.MIN_SESSION_TIMEOUT, i), builder.sessionTimeout(), () -> "i = " + I);
             Assertions.assertEquals(Session.DEFAULT_RETRY_COUNT, builder.retryCount(), () -> "i = " + I);
             Assertions.assertEquals(Session.DEFAULT_RETRY_DELAY, builder.retryDelay(), () -> "i = " + I);
-            Assertions.assertEquals(Session.DEFAULT_BASE_PATH, builder.basePath(), () -> "i = " + I);
             Assertions.assertEquals(Session.DEFAULT_WAIT_FOR_CONNECTION, builder.waitForConnection(), () -> "i = " + I);
         }
         builder.sessionTimeout(0);
@@ -149,7 +143,6 @@ public class SessionTest
             Assertions.assertEquals(Session.DEFAULT_SESSION_TIMEOUT, builder.sessionTimeout(), () -> "i = " + I);
             Assertions.assertEquals(Session.DEFAULT_RETRY_COUNT, builder.retryCount(), () -> "i = " + I);
             Assertions.assertEquals(Session.DEFAULT_RETRY_DELAY, builder.retryDelay(), () -> "i = " + I);
-            Assertions.assertEquals(Session.DEFAULT_BASE_PATH, builder.basePath(), () -> "i = " + I);
             Assertions.assertEquals(Session.DEFAULT_WAIT_FOR_CONNECTION, builder.waitForConnection(), () -> "i = " + I);
         }
         builder.retryCount(0);
@@ -158,7 +151,6 @@ public class SessionTest
         Assertions.assertEquals(Session.DEFAULT_SESSION_TIMEOUT, builder.sessionTimeout(), () -> "0");
         Assertions.assertEquals(Session.DEFAULT_RETRY_COUNT, builder.retryCount(), "0");
         Assertions.assertEquals(Session.DEFAULT_RETRY_DELAY, builder.retryDelay(), "0");
-        Assertions.assertEquals(Session.DEFAULT_BASE_PATH, builder.basePath(), "0");
         Assertions.assertEquals(Session.DEFAULT_WAIT_FOR_CONNECTION, builder.waitForConnection(), "0");
         for (int i = Integer.MAX_VALUE; i > 0; i /= 10)
         {
@@ -169,7 +161,6 @@ public class SessionTest
             Assertions.assertEquals(Session.DEFAULT_SESSION_TIMEOUT, builder.sessionTimeout(), () -> "i = " + I);
             Assertions.assertEquals(i, builder.retryCount(), () -> "i = " + I);
             Assertions.assertEquals(Session.DEFAULT_RETRY_DELAY, builder.retryDelay(), () -> "i = " + I);
-            Assertions.assertEquals(Session.DEFAULT_BASE_PATH, builder.basePath(), () -> "i = " + I);
             Assertions.assertEquals(Session.DEFAULT_WAIT_FOR_CONNECTION, builder.waitForConnection(), () -> "i = " + I);
         }
         builder.retryCount(0);
@@ -183,7 +174,6 @@ public class SessionTest
             Assertions.assertEquals(Session.DEFAULT_SESSION_TIMEOUT, builder.sessionTimeout(), () -> "i = " + I);
             Assertions.assertEquals(Session.DEFAULT_RETRY_COUNT, builder.retryCount(), () -> "i = " + I);
             Assertions.assertEquals(Session.DEFAULT_RETRY_DELAY, builder.retryDelay(), () -> "i = " + I);
-            Assertions.assertEquals(Session.DEFAULT_BASE_PATH, builder.basePath(), () -> "i = " + I);
             Assertions.assertEquals(Session.DEFAULT_WAIT_FOR_CONNECTION, builder.waitForConnection(), () -> "i = " + I);
         }
         builder.retryDelay(0);
@@ -192,7 +182,6 @@ public class SessionTest
         Assertions.assertEquals(Session.DEFAULT_SESSION_TIMEOUT, builder.sessionTimeout(), () -> "0");
         Assertions.assertEquals(Session.DEFAULT_RETRY_COUNT, builder.retryCount(), "0");
         Assertions.assertEquals(Session.DEFAULT_RETRY_DELAY, builder.retryDelay(), "0");
-        Assertions.assertEquals(Session.DEFAULT_BASE_PATH, builder.basePath(), "0");
         Assertions.assertEquals(Session.DEFAULT_WAIT_FOR_CONNECTION, builder.waitForConnection(), "0");
         for (int i = Integer.MAX_VALUE; i > 0; i /= 10)
         {
@@ -204,25 +193,9 @@ public class SessionTest
             Assertions.assertEquals(Session.DEFAULT_RETRY_COUNT, builder.retryCount(), () -> "i = " + I);
             Assertions.assertEquals(Math.max(Session.MIN_RETRY_DELAY, Math.min(Session.MAX_RETRY_DELAY, i)), builder.retryDelay(),
                     () -> "i = " + I);
-            Assertions.assertEquals(Session.DEFAULT_BASE_PATH, builder.basePath(), () -> "i = " + I);
             Assertions.assertEquals(Session.DEFAULT_WAIT_FOR_CONNECTION, builder.waitForConnection(), () -> "i = " + I);
         }
         builder.retryDelay(0);
-
-        for (int i = Integer.MAX_VALUE; i > 0; i /= 10)
-        {
-            String p = String.format("/a/b/%d", i);
-            builder.basePath(p);
-            final int I = i;
-            Assertions.assertNull(builder.connect(), () -> "i = " + I);
-            Assertions.assertEquals(Session.DEFAULT_CONNECTION_TIMEOUT, builder.connectionTimeout(), () -> "i = " + I);
-            Assertions.assertEquals(Session.DEFAULT_SESSION_TIMEOUT, builder.sessionTimeout(), () -> "i = " + I);
-            Assertions.assertEquals(Session.DEFAULT_RETRY_COUNT, builder.retryCount(), () -> "i = " + I);
-            Assertions.assertEquals(Session.DEFAULT_RETRY_DELAY, builder.retryDelay(), () -> "i = " + I);
-            Assertions.assertEquals(p, builder.basePath(), () -> "i = " + I);
-            Assertions.assertEquals(Session.DEFAULT_WAIT_FOR_CONNECTION, builder.waitForConnection(), () -> "i = " + I);
-        }
-        builder.basePath(null);
 
         for (int i = 0; i < 2; i++)
         {
@@ -233,7 +206,6 @@ public class SessionTest
             Assertions.assertEquals(Session.DEFAULT_SESSION_TIMEOUT, builder.sessionTimeout(), () -> "w = " + w);
             Assertions.assertEquals(Session.DEFAULT_RETRY_COUNT, builder.retryCount(), () -> "w = " + w);
             Assertions.assertEquals(Session.DEFAULT_RETRY_DELAY, builder.retryDelay(), () -> "w = " + w);
-            Assertions.assertEquals(Session.DEFAULT_BASE_PATH, builder.basePath(), () -> "w = " + w);
             Assertions.assertEquals(w, builder.waitForConnection(), () -> "w = " + w);
         }
         builder.waitForConnection(null);
@@ -242,7 +214,6 @@ public class SessionTest
         Assertions.assertEquals(Session.DEFAULT_SESSION_TIMEOUT, builder.sessionTimeout());
         Assertions.assertEquals(Session.DEFAULT_RETRY_COUNT, builder.retryCount());
         Assertions.assertEquals(Session.DEFAULT_RETRY_DELAY, builder.retryDelay());
-        Assertions.assertEquals(Session.DEFAULT_BASE_PATH, builder.basePath());
         Assertions.assertEquals(Session.DEFAULT_WAIT_FOR_CONNECTION, builder.waitForConnection());
 
         for (int i = Integer.MAX_VALUE; i > 0; i /= 10)
@@ -256,7 +227,6 @@ public class SessionTest
             Assertions.assertEquals(Session.DEFAULT_RETRY_COUNT, builder.retryCount(), () -> "i = " + I);
             Assertions.assertEquals(Session.DEFAULT_RETRY_DELAY, builder.retryDelay(), () -> "i = " + I);
             Assertions.assertEquals(Session.DEFAULT_WAIT_FOR_CONNECTION, builder.waitForConnection(), () -> "i = " + I);
-            Assertions.assertEquals(Session.DEFAULT_BASE_PATH, builder.basePath(), () -> "i = " + I);
         }
         builder.connect(null);
         Assertions.assertNull(builder.connect());
@@ -264,7 +234,6 @@ public class SessionTest
         Assertions.assertEquals(Session.DEFAULT_SESSION_TIMEOUT, builder.sessionTimeout());
         Assertions.assertEquals(Session.DEFAULT_RETRY_COUNT, builder.retryCount());
         Assertions.assertEquals(Session.DEFAULT_RETRY_DELAY, builder.retryDelay());
-        Assertions.assertEquals(Session.DEFAULT_BASE_PATH, builder.basePath());
         Assertions.assertEquals(Session.DEFAULT_WAIT_FOR_CONNECTION, builder.waitForConnection());
     }
 
@@ -275,7 +244,6 @@ public class SessionTest
 
         try (Session session = builder.build())
         {
-            Assertions.assertNull(session.getBasePath());
             Assertions.assertFalse(session.isEnabled());
             Assertions.assertNull(session.getClient());
         }
@@ -283,28 +251,8 @@ public class SessionTest
         builder.connect(SessionTest.SERVER.getConnectString());
         try (Session session = builder.build())
         {
-            Assertions.assertEquals(builder.basePath(), session.getBasePath());
             Assertions.assertTrue(session.isEnabled());
             Assertions.assertNotNull(session.getClient());
-        }
-    }
-
-    @Test
-    public void testGetBasePath() throws Exception
-    {
-        Session.Builder builder = new Session.Builder();
-        builder.connect(SessionTest.SERVER.getConnectString());
-
-        for (int i = 0; i < 10; i++)
-        {
-            String p = "/a/b/c/" + i;
-            builder.basePath(p);
-            try (Session session = builder.build())
-            {
-                Assertions.assertEquals(p, session.getBasePath());
-                Assertions.assertTrue(session.isEnabled());
-                Assertions.assertNotNull(session.getClient());
-            }
         }
     }
 
@@ -325,7 +273,7 @@ public class SessionTest
             Object key = session.addCleanup(Tools::noop);
             Assertions.assertNotNull(key);
             Assertions.assertNotEquals(Session.NULL_CLEANUP_KEY, key);
-            Assertions.assertTrue(Integer.class.isInstance(key));
+            Assertions.assertTrue((key instanceof Integer));
             Assertions.assertEquals(Session.NULL_CLEANUP_KEY, session.addCleanup(null));
         }
     }
@@ -353,7 +301,7 @@ public class SessionTest
                 Object key = session.addCleanup(c);
                 Assertions.assertNotNull(key);
                 Assertions.assertNotEquals(Session.NULL_CLEANUP_KEY, key);
-                Assertions.assertTrue(Integer.class.isInstance(key));
+                Assertions.assertTrue((key instanceof Integer));
                 Assertions.assertSame(c, session.removeCleanup(key));
             }
         }

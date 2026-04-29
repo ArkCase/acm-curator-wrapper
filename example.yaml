@@ -9,9 +9,6 @@ session:
   # Connection timeout in ms (default: 5 seconds)
   connectionTimeout: connection-timeout-in-ms
 
-  # The base path for whatever will be requested below (default: none)
-  basePath: "the-zookeeper-base-path-for-the-wrapper's-objects"
-
   # Connection retry parameters
   retry:
     # If set to 0 or lower, it will retry forever

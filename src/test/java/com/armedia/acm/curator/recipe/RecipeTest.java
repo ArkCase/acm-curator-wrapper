@@ -107,7 +107,7 @@ public class RecipeTest
                         return uuid;
                     }
                 };
-                String path = String.format("%s/%s/%s", session.getBasePath(), r.getClass().getSimpleName().toLowerCase(), name);
+                String path = String.format("/%s/%s", r.getClass().getSimpleName().toLowerCase(), name);
                 Assertions.assertSame(session, r.getSession());
                 Assertions.assertEquals(name, r.getName());
                 Assertions.assertEquals(path, r.getPath());
@@ -124,7 +124,7 @@ public class RecipeTest
                 }
             };
             String name = r.getName();
-            String path = String.format("%s/%s/%s", session.getBasePath(), r.getClass().getSimpleName().toLowerCase(), name);
+            String path = String.format("/%s/%s", r.getClass().getSimpleName().toLowerCase(), name);
             Assertions.assertSame(session, r.getSession());
             Assertions.assertEquals(name, r.getName());
             Assertions.assertEquals(path, r.getPath());
