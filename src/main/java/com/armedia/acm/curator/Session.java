@@ -325,11 +325,11 @@ public class Session implements AutoCloseable
 
         private void computeConnectStrings(String connect, String instanceId)
         {
-            // Sanitize the instance ID
+            // Sanitize the instanceId ID
             instanceId = StringUtils.defaultIfBlank(instanceId, StringUtils.EMPTY);
             if (instanceId.indexOf('/') >= 0)
             {
-                throw new RuntimeException(String.format("The ArkCase instance ID may not contain any slashes (/): [%s]", instanceId));
+                throw new RuntimeException(String.format("The ArkCase instanceId ID may not contain any slashes (/): [%s]", instanceId));
             }
             this.instanceId = instanceId;
 
@@ -381,6 +381,17 @@ public class Session implements AutoCloseable
         public Builder connect(String connect)
         {
             this.connect = connect;
+            return this;
+        }
+
+        public String instanceId()
+        {
+            return this.instanceId;
+        }
+
+        public Builder instanceId(String instanceId)
+        {
+            this.instanceId = instanceId;
             return this;
         }
 
@@ -442,7 +453,7 @@ public class Session implements AutoCloseable
 
         public Builder configure()
         {
-            computeConnectStrings(computeString("zk.host", this.connect), computeString("arkcase.instance.id", this.instanceId));
+            computeConnectStrings(computeString("zk.host", this.connect), computeString("zk.instance", this.instanceId));
             this.sessionTimeout = computeInteger("zk.session.timeout", this.sessionTimeout, Session.DEFAULT_SESSION_TIMEOUT,
                     Session.MIN_SESSION_TIMEOUT);
             this.connectionTimeout = computeInteger("zk.connection.timeout", this.connectionTimeout, Session.DEFAULT_CONNECTION_TIMEOUT,

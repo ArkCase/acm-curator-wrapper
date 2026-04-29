@@ -96,6 +96,7 @@ public class SessionCfg
         RetryCfg retry = getRetry();
         return new Session.Builder() //
                 .connect(this.connect) //
+                .instanceId(this.instanceId) //
                 .sessionTimeout(this.sessionTimeout) //
                 .connectionTimeout(this.connectionTimeout) //
                 .retryCount(retry.getCount()) //
