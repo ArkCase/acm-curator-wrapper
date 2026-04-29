@@ -39,6 +39,7 @@ public enum OperationMode
     mutex, //
     upload, //
     // barrier, //
+    mkroot, //
     //
     ;
 }

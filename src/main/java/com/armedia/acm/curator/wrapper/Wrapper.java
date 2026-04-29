@@ -397,6 +397,11 @@ public class Wrapper
                     FileUtils.deleteQuietly(tempFile.toFile());
                 }
 
+            case mkroot:
+                // If the session is already established, we need not do
+                // anything b/c the chroot znode has already been created
+                return 0;
+
             default:
                 this.log.info("No algorithm for wrapper type {}", this.cfg.getMode());
                 return run(cmd);
