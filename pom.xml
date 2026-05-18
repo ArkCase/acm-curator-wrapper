@@ -14,7 +14,7 @@
 	<inceptionYear>2023</inceptionYear>
 
 	<properties>
-		<revision>1.9.3-SNAPSHOT</revision>
+		<revision>1.9.4-SNAPSHOT</revision>
 		<maven.min-version>3.8.6</maven.min-version>
 		<java.version>11</java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -24,7 +24,7 @@
 		<commons-text.version>1.14.0</commons-text.version>
 		<curator.version>5.9.0</curator.version>
 		<zookeeper.version>3.9.5</zookeeper.version>
-		<netty.version>4.1.127.Final</netty.version>
+		<netty.version>4.1.133.Final</netty.version>
 		<snakeyaml.version>2.5</snakeyaml.version>
 		<commons-cli.version>1.10.0</commons-cli.version>
 		<commons-lang.version>3.19.0</commons-lang.version>
